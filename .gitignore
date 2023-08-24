@@ -1,0 +1,5 @@
+#What we are ignoring
+.env
+
+#Exceptions to rules defined earlier
+#None
