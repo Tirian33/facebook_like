@@ -1,5 +1,5 @@
 import os
-from flask import Flask, abort, request, jsonify, g
+from flask import Flask, abort, request, jsonify, g, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import PendingRollbackError, OperationalError, TimeoutError
 from sqlalchemy import distinct
@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config.from_pyfile("settings.py")
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
-jwtInfo = app.config(['SECRET_KEY'])
+jwtInfo = app.config['SECRET_KEY']
 app.app_context().push() 
 
 from models import *
@@ -54,6 +54,8 @@ def verify_password(unOrToken, password):
     return True
 
 #API routes
+
+#Account related
 #Account creation at default request
 @app.route('/api/account', methods=['POST'])
 def makeAccount():
@@ -66,4 +68,35 @@ def makeAccount():
     acnt = Account(username, password)
     db.session.add(acnt)
     db.session.commit()
-    return 404 #Temporary It should direct the user to the logedin homepage signed in with a token
+    return jsonify(acnt)
+
+@app.route('/api/account/<int:id>')
+def getAccount(id):
+    acnt = Account.query.get(id)
+    if not acnt:
+        abort(404) #Account not found
+    return jsonify(acnt)
+
+#Token related
+@app.route('/api/token')
+@auth.login_required
+def getToken():
+    token = g.account.genToken(600)
+    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+
+
+
+#Webpages
+@app.route('/')
+def indexPage():
+    return render_template('index.html')
+
+#Teardown (don't mess with this)
+@app.teardown_appcontext
+def killSession(exception=None):
+    db.session.remove()
+
+#defining the app as itself (don't mess with this)
+
+if __name__ == '__main__':
+    app.run(host="localhost", port=5000, debug=True)

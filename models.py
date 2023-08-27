@@ -22,8 +22,8 @@ class Account(db.Model):
         pwBytes = password.encode('utf-8')
         return bcrypt.checkpw(self.passwordHash.encode('utf-8'), pwBytes)
 
-    def genToken(account, expiry=600):
-        return jwt.encode({'id': account.id, 'exp': (time.time() + expiry)},
+    def genToken(self, expiry=600):
+        return jwt.encode({'id': self.id, 'exp': (time.time() + expiry)},
                             jwtInfo, algorithm='HS256' )
 
     @staticmethod
