@@ -1,8 +1,10 @@
 Flask==2.2.2
 Flask-HTTPAuth==4.8.0
-Flask-SQLALchem==3.0.3
+Flask-SQLALchemy==3.0.3
 Jinja2==3.1.2
 pyJWT==2.8.0
-python-donenv==1.0.0
+python-dotenv==1.0.0
 Werkzeug==2.2.2
 bcrypt==4.0.1
+flask-marshmallow==0.15.0
+mysqlclient==2.2.0
