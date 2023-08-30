@@ -5,7 +5,7 @@ Used Packages: see requirements.txt
 
 Group members:
 Tirian Judy - tirian33 = Team lead & backend member
-Alexander Way - = Backend member
+Alexander Way - asw241 = Backend member
 Debrah Kwaku - debrahGh = Frontend member
 Rishita Garag - = Frontend and documentation
 
