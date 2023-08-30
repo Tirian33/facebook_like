@@ -5,7 +5,7 @@ Used Packages: see requirements.txt
 
 Group members:
 Tirian Judy - tirian33 = Team lead & backend member
-Alexander Way - = Backend member
+Alexander Way - asw241 = Backend member
 Debrah Kwaku - debrahGh = Frontend member
 Rishita Garg - RishitaGarg1= Frontend and documentation
 
@@ -30,7 +30,7 @@ SRS at: https://docs.google.com/document/d/1dPo8VYm1W8P0Whk1zNR_1woAZ8ZA6i3S/edi
 
 To run:
 1 time executions in current directory perform: 
-$pip install requirements.txt
+$pip install -r requirements.txt
 $export FLASK_APP=app
 $export FLASK_ENV=development
 
