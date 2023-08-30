@@ -7,7 +7,7 @@ Group members:
 Tirian Judy - tirian33 = Team lead & backend member
 Alexander Way - = Backend member
 Debrah Kwaku - debrahGh = Frontend member
-Rishita Garag - = Frontend and documentation
+Rishita Garg - RishitaGarg1= Frontend and documentation
 
 Purpose:
 Description
