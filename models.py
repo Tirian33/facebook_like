@@ -48,3 +48,33 @@ class Account(db.Model):
 #    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 #    username = db.Column(db.String(32))
 #    passwordHash = db.Column(db.String(128))
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
+    #Figure out backpopulation of replies
+    #Figure out backpopulation of reactions
+    #Figure out image content allowance
+    deletedAt = db.Column(db.DateTime)
+
+class Reply(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    respondingTo = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
+    deletedAt = db.Column(db.DateTime)
+
+class Reaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    respondingTo = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    reactionType = db.Column(db.Integer, default=0)
+    deletedAt = db.Column(db.DateTime) #Since this is volitile and meaningless data do we want to store its deletion?
+
+class Relationship(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    firstAccountID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    secondAccountID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    confirmedRelation = db.Column(db.Boolean, default=False)
+    isFriendRelation = db.Column(db.Boolean, default=True)
