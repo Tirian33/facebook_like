@@ -8,9 +8,8 @@ class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(32))
     passwordHash = db.Column(db.String(128))
-    #fName = db.Column(db.String(32), nullable=False)
-    #lName = db.Column(db.String(32), nullable=False)
-    login = db.relationship('Login', back_populates='account', uselist=False)
+    fName = db.Column(db.String(32), nullable=False)
+    lName = db.Column(db.String(32), nullable=False)
     deletedAt = db.Column(db.DateTime)
 
     def hashPW(input) -> str:
@@ -36,23 +35,18 @@ class Account(db.Model):
             return
         return Account.query.get(accData)['id']
 
-    #def __init__(self, username, passwordUnhashed, first, last): JIC Need to store F & L names.
-    def __init__(self, username, passwordUnhashed):
+    def __init__(self, username, passwordUnhashed, first, last):
         self.username = username
         self.passwordHash = self.hashPW(passwordUnhashed)
-        #self.fName = first
-        #self.lName = last
-
-# JIC Need to break login to different aspects
-#class Login(db.Model):
-#    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#    username = db.Column(db.String(32))
-#    passwordHash = db.Column(db.String(128))
+        self.fName = first
+        self.lName = last
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
+    isPublic = db.Column(db.Boolean, default=False)
+    sharedPostID = db.Column(db.Integer, nullable=True)
     #Figure out backpopulation of replies
     #Figure out backpopulation of reactions
     #Figure out image content allowance
@@ -70,7 +64,7 @@ class Reaction(db.Model):
     respondingTo = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     reactionType = db.Column(db.Integer, default=0)
-    deletedAt = db.Column(db.DateTime) #Since this is volitile and meaningless data do we want to store its deletion?
+    deletedAt = db.Column(db.DateTime) #Keep for now
 
 class Relationship(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
