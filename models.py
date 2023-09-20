@@ -1,7 +1,5 @@
-from app import db, jwtInfo
+from app import db, bcrypt
 import time
-import jwt
-import bcrypt
 from datetime import datetime, timedelta
 
 class Account(db.Model):
@@ -11,33 +9,23 @@ class Account(db.Model):
     fName = db.Column(db.String(32), nullable=False)
     lName = db.Column(db.String(32), nullable=False)
     deletedAt = db.Column(db.DateTime)
-
-    def hashPW(input) -> str:
-        byteForm = input.encode('utf-8')
-        hashedForm = bcrypt.hashpw(byteForm, bcrypt.gensalt())
-        return hashedForm
     
     def checkPW(self, password):
-        pwBytes = password.encode('utf-8')
-        return bcrypt.checkpw(self.passwordHash.encode('utf-8'), pwBytes)
+        return bcrypt.check_password_hash(self.passwordHash, password)
 
-    def genToken(self, expiry=600):
-        return jwt.encode({'id': self.id, 'exp': (time.time() + expiry)},
-                            jwtInfo, algorithm='HS256' )
+    def toDict(self):
+        dictForm = {
+            'id' : self.id,
+            'username' : self.username,
+            'fName' : self.fName,
+            'lName' : self.lName,
+        }
+        return dictForm
 
-    @staticmethod
-    def checkToken(token):
-        try:
-            #attempt to resolve the account
-            accData = jwt.decode(token, jwtInfo, algoritms=['HS256'])
-        except:
-            #we can't resolve an account so return no account
-            return
-        return Account.query.get(accData)['id']
 
     def __init__(self, username, passwordUnhashed, first, last):
         self.username = username
-        self.passwordHash = self.hashPW(passwordUnhashed)
+        self.passwordHash = bcrypt.generate_password_hash(passwordUnhashed).decode('utf-8')
         self.fName = first
         self.lName = last
 

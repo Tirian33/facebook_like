@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--Mobile friendly I think-->
+    <title>Login <TITLE></TITLE></title>
+</head>
+
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form method="POST" action="/login" id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" id="loginButton">Login</button>
+        </form>
+        <script>
+            document.querySelector('#loginButton').addEventListener('click', function () {
+                //Prevent normal unhandled submit
+                event.preventDefault();
+
+                //Grab the loginForm element
+                var dict = {};
+                var loginData = new FormData(document.querySelector('#loginForm'));
+                loginData.forEach((value, key) => dict[key] = value);
+                //Perform the action of submit button
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json',},
+                    body: JSON.stringify(dict), 
+                }).then(function (res){ 
+                    if (res.status == 200)
+                    {
+                        //JWT should be set so lets go to the home page
+                        window.location.href = '/home';
+                    }
+                    else
+                    {
+                        //Make alert pop up
+                        alert('Incorrect username or password. Please try again.');
+                    }
+                }).catch(function(error){
+                    //Hopefully we never reach this
+                    console.log("ERROR ON LOGIN:", error);
+                })
+            });
+        </script>
+        <!-- Register button not ready for implementation yet.
+        <p>Don't have an account? <a href="/register">register</a></p> -->
+    </div>
+</body>
+</html>
