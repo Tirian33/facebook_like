@@ -67,9 +67,10 @@ def makeAccount():
     password = request.json.get('password')
     fName = request.json.get('fName')
     lName = request.json.get('lName')
+    public = request.json.get('public')
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
-    acnt = Account(username, password, fName, lName)
+    acnt = Account(username, password, fName, lName, public)
     db.session.add(acnt)
     db.session.commit()
     accountToken = create_access_token(identity=acnt.id, expires_delta=timedelta(minutes=10))
@@ -105,7 +106,8 @@ def accountLogin():
 @jwt_required
 def makePost():
     if request.json.get('testContent') is None and request.json.get('sharedPostId')is None:
-        abort(400) #need content when not just reposting
+        abort(400, "Cannot make blank post.")
+
 
     newPost = Post(get_jwt_identity, request.json.get('textContent'), request.json.get('sharedPostId'))
     db.session.add(newPost)
