@@ -7,7 +7,6 @@ from flask_marshmallow import Marshmallow
 from datetime import (datetime, timedelta, timezone)
 import jwt
 from flask_jwt_extended import *
-from flask_httpauth import HTTPBasicAuth
 from flask_bcrypt import *
 import json
 
