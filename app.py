@@ -87,11 +87,9 @@ def getAccount(id):
 
 @app.route('/api/login', methods=['POST'])
 def accountLogin():
-    print(request.json)
     username = request.json.get('username')
     acct = Account.query.filter_by(username=username).first()
     if acct is None:
-        print("A")
         abort(500)
     
     if(acct.checkPW(request.json.get('password'))):
@@ -100,8 +98,20 @@ def accountLogin():
         set_access_cookies(response, accountToken)
         return response    
     #Bad info must have been given so we abort
-    print("B")
     abort(500)
+
+#Post related
+@app.route('/api/post', methods=['POST'])
+@jwt_required
+def makePost():
+    if request.json.get('testContent') is None and request.json.get('sharedPostId')is None:
+        abort(400) #need content when not just reposting
+
+    newPost = Post(get_jwt_identity, request.json.get('textContent'), request.json.get('sharedPostId'))
+    db.session.add(newPost)
+    db.session.commit()
+    return 200 #returning "OK"
+    
 
 
 #Token related
