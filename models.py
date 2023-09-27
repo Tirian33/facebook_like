@@ -69,3 +69,9 @@ class Relationship(db.Model):
     secondAccountID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     confirmedRelation = db.Column(db.Boolean, default=False)
     isFriendRelation = db.Column(db.Boolean, default=True)
+    deletedAt = db.Column(db.DateTime)
+
+    def __init__(self, initiatorID, targetID, friend=True):
+        self.firstAccountID = initiatorID
+        self.secondAccountID = targetID
+        self.isFriendRelation = friend

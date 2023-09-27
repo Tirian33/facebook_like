@@ -101,9 +101,28 @@ def accountLogin():
     #Bad info must have been given so we abort
     abort(500)
 
+#Friend request sending
+@app.route('/api/makeFriend', methods=['POST'])
+@jwt_required()
+def sendFriendRequest():
+    if request.json.get('friendCode') is None:
+        abort(400, "Need Friend Code of requested Friend.")
+
+    targetAccount = Account.query.filter_by(friendCode = request.json.get('friendCode')).first()
+    
+    if targetAccount is None:
+        abort(400, "Friend not found.")
+
+    newRelationship = Relationship(get_jwt_identity, targetAccount.id)
+
+    db.session.add(newRelationship)
+    db.session.commit()
+    return 200
+
+
 #Post related
 @app.route('/api/post', methods=['POST'])
-@jwt_required
+@jwt_required()
 def makePost():
     if request.json.get('testContent') is None and request.json.get('sharedPostId')is None:
         abort(400, "Cannot make blank post.")
