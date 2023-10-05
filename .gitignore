@@ -1,6 +1,6 @@
 #What we are ignoring
 .env
-
+__pycache__/
 #Exceptions to rules defined earlier
 #None
 /.vs

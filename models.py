@@ -1,7 +1,6 @@
-from app import db, jwtInfo
+from app import db, bcrypt
 import time
-import jwt
-import bcrypt
+import uuid
 from datetime import datetime, timedelta
 
 class Account(db.Model):
@@ -10,47 +9,45 @@ class Account(db.Model):
     passwordHash = db.Column(db.String(128))
     fName = db.Column(db.String(32), nullable=False)
     lName = db.Column(db.String(32), nullable=False)
+    isPublic = db.Column(db.Boolean, default=False)
+    friendCode = db.Column(db.String(10), unique=True, default=str(uuid.uuid4()))
     deletedAt = db.Column(db.DateTime)
-
-    def hashPW(input) -> str:
-        byteForm = input.encode('utf-8')
-        hashedForm = bcrypt.hashpw(byteForm, bcrypt.gensalt())
-        return hashedForm
     
     def checkPW(self, password):
-        pwBytes = password.encode('utf-8')
-        return bcrypt.checkpw(self.passwordHash.encode('utf-8'), pwBytes)
+        return bcrypt.check_password_hash(self.passwordHash, password)
 
-    def genToken(self, expiry=600):
-        return jwt.encode({'id': self.id, 'exp': (time.time() + expiry)},
-                            jwtInfo, algorithm='HS256' )
+    def toDict(self):
+        dictForm = {
+            'id' : self.id,
+            'username' : self.username,
+            'fName' : self.fName,
+            'lName' : self.lName,
+            'isPublic' : self.isPublic,
+            'friendCode' : self.friendCode,
+        }
+        return dictForm
 
-    @staticmethod
-    def checkToken(token):
-        try:
-            #attempt to resolve the account
-            accData = jwt.decode(token, jwtInfo, algoritms=['HS256'])
-        except:
-            #we can't resolve an account so return no account
-            return
-        return Account.query.get(accData)['id']
 
-    def __init__(self, username, passwordUnhashed, first, last):
+    def __init__(self, username, passwordUnhashed, first, last, public = False):
         self.username = username
-        self.passwordHash = self.hashPW(passwordUnhashed)
+        self.passwordHash = bcrypt.generate_password_hash(passwordUnhashed).decode('utf-8')
         self.fName = first
         self.lName = last
+        self.isPublic = public
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
-    isPublic = db.Column(db.Boolean, default=False)
     sharedPostID = db.Column(db.Integer, nullable=True)
-    #Figure out backpopulation of replies
-    #Figure out backpopulation of reactions
-    #Figure out image content allowance
+    replies = db.relationship('Reply', backref='post', lazy='dynamic')
+    reactions = db.relationship('Reaction', backref='post', lazy='dynamic')
     deletedAt = db.Column(db.DateTime)
+
+    def __init__(self, pID, text, sharedPID=None):
+        self.posterID = pID
+        self.textContent = text
+        self.sharedPostID = sharedPID
 
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -64,7 +61,7 @@ class Reaction(db.Model):
     respondingTo = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     reactionType = db.Column(db.Integer, default=0)
-    deletedAt = db.Column(db.DateTime) #Keep for now
+    deletedAt = db.Column(db.DateTime) 
 
 class Relationship(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -72,3 +69,9 @@ class Relationship(db.Model):
     secondAccountID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     confirmedRelation = db.Column(db.Boolean, default=False)
     isFriendRelation = db.Column(db.Boolean, default=True)
+    deletedAt = db.Column(db.DateTime)
+
+    def __init__(self, initiatorID, targetID, friend=True):
+        self.firstAccountID = initiatorID
+        self.secondAccountID = targetID
+        self.isFriendRelation = friend
