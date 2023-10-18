@@ -29,6 +29,23 @@ def softDeleteObjects(listing) -> None:
         item.deletedAt = datetime.now()
     db.session.commit()
 
+#Both account IDs are assumed to not be None
+def canMakeContent(targetAccID, posterID):
+    if targetAccID == posterID:
+        return 1
+    targetAcc = Account.query.filter_by(id = targetAccID).first()
+
+    if targetAcc is not None:
+        if not targetAcc.isPublic:
+            return 2
+        
+        rel = Relationship.query.filter_by(firstAccountID = targetAcc, secondAccountID = posterID, deletedAt = None, isFriendRelation = True).first()
+        if rel is not None:
+            return 1
+    #Not the same account, and Poster is not friend with target account.
+    return 3
+
+
 
 #ERROR HANDLING
 @app.errorhandler(500)
@@ -109,30 +126,118 @@ def sendFriendRequest():
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of requested Friend.")
 
-    targetAccount = Account.query.filter_by(friendCode = request.json.get('friendCode')).first()
+    targetAccount = Account.query.filter_by(friendCode = request.json.get('friendCode'), deletedAt=None).first()
     
     if targetAccount is None:
         abort(400, "Friend not found.")
 
-    newRelationship = Relationship(get_jwt_identity, targetAccount.id)
+    pendingInverse = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
 
+    #Other person sent a friend request in the past, lets accept
+    if pendingInverse.isFriendRelation: 
+        pendingInverse.confirmedRelation = True
+        db.session.add(pendingInverse.makeInverse())
+        db.session.commit()
+        return "OK", 200
+
+    #Request was sent in the past
+    if Relationship.query.filter_by(firstAccountID = get_jwt_identity(), secondAccountID = targetAccount.id).first() is not None:
+        abort(400, "Request already sent")
+
+    #Lets make the request
+    newRelationship = Relationship(get_jwt_identity(), targetAccount.id)
     db.session.add(newRelationship)
     db.session.commit()
-    return 200
+    return "OK", 200
 
 
 #Post related
 @app.route('/api/post', methods=['POST'])
 @jwt_required()
 def makePost():
-    if request.json.get('testContent') is None and request.json.get('sharedPostId')is None:
-        abort(400, "Cannot make blank post.")
+    if ((request.json.get('textContent') is None and request.json.get('sharedPostId')is None) or request.json.get('postedOnID') is None):
+        abort(400, "Invalid request recieved.")
 
+    targetAccount = Account.query.filter_by(id = request.json.get('postedOnID'), deletedAt = None).first()
+    if (targetAccount is None):
+        abort(400, "Can't find that person to post on.")
+    
+    permission = canMakeContent(request.json.get('postedOnID'), get_jwt_identity())
 
-    newPost = Post(get_jwt_identity, request.json.get('textContent'), request.json.get('sharedPostId'))
+    if permission == "2":
+        abort(400, "You do not have permission to post right now.")
+    elif permission == "3":
+        abort(400, "You are not friends. You cannot post")
+    
+
+    newPost = Post(get_jwt_identity(), request.json.get('textContent'), request.json.get('postedOnID'), request.json.get('sharedPostId'))
     db.session.add(newPost)
     db.session.commit()
-    return 200 #returning "OK"
+    return "OK", 200 #returning "OK"
+
+@app.route('/api/post/<int:postID>', methods=['DELETE'])
+@jwt_required()
+def deletePost(postID):
+    requesterID = get_jwt_identity()
+    
+    targetPost = Post.query.filter_by(id=postID).first()
+    if targetPost is None:
+        abort(400) #Request made was bad
+    
+    if (targetPost.postedOnID == requesterID or targetPost.posterID == requesterID):
+        #DEL
+        softDeleteObjects(targetPost.replies)
+        softDeleteObjects(targetPost.reactions)
+        targetPost.deletedAt = datetime.now()
+        db.session.commit()
+        return "Done", 200
+    
+    abort(401) #Request was made by someone without perms
+
+#Reply related
+@app.route('/api/reply', methods=['POST'])
+@jwt_required()
+def makeReply():
+    if (request.json.get('textContent') is None or request.json.get('respTo') is None):
+        abort(400, "Invalid request recieved.")
+
+    targetPost = Post.query.fitler_by(id = request.json.get('respTo'), deletedAt = None).first()
+    if targetPost is None:
+        abort(400, "The post you are trying to respond to has been deleted.")
+
+    targetAccount = Account.query.filter_by(id = targetPost.postedOnID, deletedAt = None).first()
+    if targetAccount is None:
+        abort(400, "The post you are trying to respond to has been deleted.")
+    
+    permission = canMakeContent(request.json.get('postedOnID'), get_jwt_identity())
+    if permission == "2":
+        abort(400, "You do not have permission to post right now.")
+    elif permission == "3":
+        abort(400, "You are not friends. You cannot post")
+    
+
+    newReply = Reply(request.json.get('respTo'), get_jwt_identity(), request.json.get('textContent'))
+    db.session.add(newReply)
+    db.session.commit()
+    return "OK", 200 #returning "OK"
+
+@app.route('/api/reply/<int:replyID>', methods=['DELETE'])
+@jwt_required()
+def deleteReply(replyID):
+    requesterID = get_jwt_identity()
+    
+    target = Reply.query.filter_by(id=replyID).first()
+    if target is None:
+        abort(400) #Request made was bad
+    
+    if (target.postedOnID == requesterID or target.posterID == requesterID):
+        target.deletedAt = datetime.now()
+        db.session.commit()
+        return "Done", 200
+    
+    abort(401) #Request was made by someone without perms
+
+#TODO Reactions
     
 
 #Token related

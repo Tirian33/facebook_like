@@ -38,14 +38,15 @@ class Account(db.Model):
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    postedOnID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=True)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
     sharedPostID = db.Column(db.Integer, nullable=True)
     replies = db.relationship('Reply', backref='post', lazy='dynamic')
     reactions = db.relationship('Reaction', backref='post', lazy='dynamic')
     deletedAt = db.Column(db.DateTime)
-
-    def __init__(self, pID, text, sharedPID=None):
+    def __init__(self, pID, text, target, sharedPID=None):
         self.posterID = pID
+        self.postedOnID = target
         self.textContent = text
         self.sharedPostID = sharedPID
 
@@ -55,6 +56,10 @@ class Reply(db.Model):
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
     deletedAt = db.Column(db.DateTime)
+    def __init__(self, resToID, pID, text):
+        self.respondingTo = resToID
+        self.posterID = pID
+        self.textContent = text
 
 class Reaction(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -62,6 +67,11 @@ class Reaction(db.Model):
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     reactionType = db.Column(db.Integer, default=0)
     deletedAt = db.Column(db.DateTime) 
+
+    def __init__(self, resTo, pID, reactionType = 0):
+        self.respondingTo = resTo
+        self.posterID = pID
+        self.reactionType = reactionType
 
 class Relationship(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -75,6 +85,11 @@ class Relationship(db.Model):
         self.firstAccountID = initiatorID
         self.secondAccountID = targetID
         self.isFriendRelation = friend
+    
+    def makeInverse(self):
+        inverse = Relationship(self.secondAccountID, self.firstAccountID, self.isFriendRelation)
+        inverse.confirmedRelation = True
+        return inverse
 
 class Img(db.Model):
     id = db.Column(db.Integer, primary_key=True)
