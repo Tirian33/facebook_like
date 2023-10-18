@@ -1,5 +1,5 @@
 import os
-from flask import Flask, abort, request, jsonify, g, render_template
+from flask import Flask, abort, request, jsonify, g, render_template, Response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import PendingRollbackError, OperationalError, TimeoutError
 from sqlalchemy import distinct
@@ -9,6 +9,7 @@ import jwt
 from flask_jwt_extended import *
 from flask_bcrypt import *
 import json
+from werkzeug.utils import secure_filename
 
 # Initializing
 app = Flask(__name__)
@@ -134,13 +135,39 @@ def makePost():
     return 200 #returning "OK"
     
 
-
 #Token related
 @app.route('/api/token')
 def getToken():
     token = g.account.genToken(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
 
+
+# Image upload
+@app.route('/api/upload', methods=['POST'])
+def uploadImage():
+    pic = request.files['pic']
+
+    if not pic:
+        return 'No image uploaded', 400
+    
+    filename = secure_filename(pic.filename)
+    mimetype = pic.mimetype
+
+    img = Img(img=pic.read(), mimetype=mimetype, name=filename)
+    db.session.add(img)
+    db.session.commit()
+
+    return "Image successfully uploaded" , 200
+
+# Display the image
+@app.route('/api/images/<int:id>')
+def get_img(id):
+    img = Img.query.filter_by(id=id).first()
+    
+    if not img:
+        return "Image not found", 400
+    
+    return Response(img.img, mimetype=img.mimetype)
 
 #Webpages
 @app.route('/')
@@ -150,6 +177,10 @@ def indexPage():
 @app.route('/login')
 def loginPage():
     return render_template('login.html')
+
+@app.route('/upload')
+def uploadPage():
+    return render_template('upload.html')
 
 @app.route('/home')
 @jwt_required()

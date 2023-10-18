@@ -75,3 +75,11 @@ class Relationship(db.Model):
         self.firstAccountID = initiatorID
         self.secondAccountID = targetID
         self.isFriendRelation = friend
+
+class Img(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    img = db.Column(db.LargeBinary, nullable=False)
+    # posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    name = db.Column(db.Text, nullable=False)
+    mimetype = db.Column(db.Text, nullable=False)
+    # deletedAt = db.Column(db.DateTime)
