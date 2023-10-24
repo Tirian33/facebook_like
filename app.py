@@ -1,5 +1,5 @@
 import os
-from flask import Flask, abort, request, jsonify, g, render_template, Response
+from flask import Flask, abort, request, jsonify, g, render_template, Response, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import PendingRollbackError, OperationalError, TimeoutError
 from sqlalchemy import distinct
@@ -39,7 +39,7 @@ def canMakeContent(targetAccID, posterID):
         if not targetAcc.isPublic:
             return 2
         
-        rel = Relationship.query.filter_by(firstAccountID = targetAcc, secondAccountID = posterID, deletedAt = None, isFriendRelation = True).first()
+        rel = Relationship.query.filter_by(firstAccountID = targetAcc.id, secondAccountID = posterID, deletedAt = None, isFriendRelation = True).first()
         if rel is not None:
             return 1
     #Not the same account, and Poster is not friend with target account.
@@ -164,9 +164,9 @@ def makePost():
     
     permission = canMakeContent(request.json.get('postedOnID'), get_jwt_identity())
 
-    if permission == "2":
+    if permission == 2:
         abort(400, "You do not have permission to post right now.")
-    elif permission == "3":
+    elif permission == 3:
         abort(400, "You are not friends. You cannot post")
     
 
@@ -210,9 +210,9 @@ def makeReply():
         abort(400, "The post you are trying to respond to has been deleted.")
     
     permission = canMakeContent(request.json.get('respTo'), get_jwt_identity())
-    if permission == "2":
+    if permission == 2:
         abort(400, "You do not have permission to reply right now.")
-    elif permission == "3":
+    elif permission == 3:
         abort(400, "You are not friends. You cannot reply.")
     
 
@@ -252,9 +252,9 @@ def makeReaction():
         abort(400, "The post you are trying to react to has been deleted.")
     
     permission = canMakeContent(request.json.get('respTo'), get_jwt_identity())
-    if permission == "2":
+    if permission == 2:
         abort(400, "You do not have permission to react right now.")
-    elif permission == "3":
+    elif permission == 3:
         abort(400, "You are not friends. You cannot react.")
     
 
@@ -333,8 +333,9 @@ def uploadPage():
 def homePage():
     userAccID = get_jwt_identity()
     acc = Account.query.filter_by(id=userAccID).first()
-    friends = db.session.query(Account).join( Relationship,
-    (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+
+    #Gets all the accounts that are friends with the user.
+    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).all()
 
     # print(timeline)
@@ -353,8 +354,23 @@ def homePage():
     #     print("\n\n")
     
     # print(friends)
-    
+
     return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline)
+
+@app.route('/timeline/<int:accID>')
+@jwt_required()
+def timeline(accID):
+    if(accID == get_jwt_identity()):
+       return redirect(url_for('homePage'))
+
+    permission = canMakeContent(accID, get_jwt_identity())
+    if permission == 2:
+        abort(401, description="Profile is private.")
+    elif permission == 3:
+        abort(401, description="You are not friends.")
+    #Has permission to View
+    timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).all()
+    abort(404)
 
 @app.route('/friends')
 @jwt_required()
