@@ -2,6 +2,9 @@ from app import db, bcrypt
 import time
 import uuid
 from datetime import datetime, timedelta
+import random
+import string
+
 
 class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -10,7 +13,7 @@ class Account(db.Model):
     fName = db.Column(db.String(32), nullable=False)
     lName = db.Column(db.String(32), nullable=False)
     isPublic = db.Column(db.Boolean, default=False)
-    friendCode = db.Column(db.String(10), unique=True, default=str(uuid.uuid4()))
+    friendCode = db.Column(db.String(10), unique=True)
     deletedAt = db.Column(db.DateTime)
     
     def checkPW(self, password):
@@ -34,15 +37,22 @@ class Account(db.Model):
         self.fName = first
         self.lName = last
         self.isPublic = public
+        while True:
+            code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+            if Account.query.filter_by(friendCode=code).first() is None:
+                self.friendCode = code
+                break
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
-    postedOnID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=True)
+    postedOnID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
     sharedPostID = db.Column(db.Integer, nullable=True)
-    replies = db.relationship('Reply', backref='post', lazy='dynamic')
-    reactions = db.relationship('Reaction', backref='post', lazy='dynamic')
+    associatedImageID = db.Column(db.Integer, db.ForeignKey('img.id'), nullable=True)
+    associatedImage = db.relationship('Img', foreign_keys=[associatedImageID], )
+    replies = db.relationship('Reply', backref='post', lazy='joined')
+    reactions = db.relationship('Reaction', backref='post', lazy='joined')
     deletedAt = db.Column(db.DateTime)
     def __init__(self, pID, text, target, sharedPID=None):
         self.posterID = pID

@@ -109,7 +109,7 @@ def accountLogin():
     username = request.json.get('username')
     acct = Account.query.filter_by(username=username).first()
     if acct is None:
-        abort(500)
+        abort(404)
     
     if(acct.checkPW(request.json.get('password'))):
         accountToken = create_access_token(identity=acct.id, expires_delta=timedelta(minutes=10))
@@ -117,7 +117,7 @@ def accountLogin():
         set_access_cookies(response, accountToken)
         return response    
     #Bad info must have been given so we abort
-    abort(500)
+    abort(401)
 
 #Friend request sending
 @app.route('/api/makeFriend', methods=['POST'])
@@ -209,11 +209,11 @@ def makeReply():
     if targetAccount is None:
         abort(400, "The post you are trying to respond to has been deleted.")
     
-    permission = canMakeContent(request.json.get('postedOnID'), get_jwt_identity())
+    permission = canMakeContent(request.json.get('respTo'), get_jwt_identity())
     if permission == "2":
-        abort(400, "You do not have permission to post right now.")
+        abort(400, "You do not have permission to reply right now.")
     elif permission == "3":
-        abort(400, "You are not friends. You cannot post")
+        abort(400, "You are not friends. You cannot reply.")
     
 
     newReply = Reply(request.json.get('respTo'), get_jwt_identity(), request.json.get('textContent'))
@@ -226,19 +226,60 @@ def makeReply():
 def deleteReply(replyID):
     requesterID = get_jwt_identity()
     
-    target = Reply.query.filter_by(id=replyID).first()
+    target = Reply.query.filter_by(id=replyID, deletedAt=None).first()
     if target is None:
         abort(400) #Request made was bad
     
-    if (target.postedOnID == requesterID or target.posterID == requesterID):
+    containingPost = Post.query.filter_by(id=target.respondingTo).first()
+    
+    if (containingPost.postedOnID == requesterID or target.posterID == requesterID):
         target.deletedAt = datetime.now()
         db.session.commit()
         return "Done", 200
     
     abort(401) #Request was made by someone without perms
 
-#TODO Reactions
+#Reaction related
+#Input {reactionType:int, respTo:int} respTo - FK PostID
+@app.route('/api/reaction', methods=['POST'])
+@jwt_required()
+def makeReaction():
+    if (request.json.get('reactionType') is None or request.json.get('respTo') is None):
+        abort(400, "Invalid request recieved.")
+
+    targetPost = Post.query.fitler_by(id = request.json.get('respTo'), deletedAt = None).first()
+    if targetPost is None:
+        abort(400, "The post you are trying to react to has been deleted.")
     
+    permission = canMakeContent(request.json.get('respTo'), get_jwt_identity())
+    if permission == "2":
+        abort(400, "You do not have permission to react right now.")
+    elif permission == "3":
+        abort(400, "You are not friends. You cannot react.")
+    
+
+    newReply = Reply(request.json.get('respTo'), get_jwt_identity(), request.json.get('textContent'))
+    db.session.add(newReply)
+    db.session.commit()
+    return "OK", 200 #returning "OK"
+
+@app.route('/api/reaction/<int:reactionID>', methods=['DELETE'])
+@jwt_required()
+def deleteReaction(reactionID):
+    requesterID = get_jwt_identity()
+    
+    target = Reaction.query.filter_by(id=reactionID).first()
+    if target is None:
+        abort(400) #Request made was bad
+    
+    containingPost = Post.query.filter_by(id=target.respondingTo).first()
+
+    if (containingPost.postedOnID == requesterID or target.posterID == requesterID):
+        target.deletedAt = datetime.now()
+        db.session.commit()
+        return "Done", 200
+    
+    abort(401) #Request was made by someone without perms
 
 #Token related
 @app.route('/api/token')
@@ -292,7 +333,34 @@ def uploadPage():
 def homePage():
     userAccID = get_jwt_identity()
     acc = Account.query.filter_by(id=userAccID).first()
-    return render_template('home.html', account = acc.toDict())
+    friends = db.session.query(Account).join( Relationship,
+    (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+    timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).all()
+
+    # print(timeline)
+
+    # for pst in timeline:
+    #     print("POST CONTENT:")
+    #     print(pst.textContent)
+    #     print("REPLIES:")
+    #     print(pst.replies)
+    #     for rep in pst.replies:
+    #         print(rep.textContent)
+    #     print("REACTIONS:")
+    #     print(pst.reactions)
+    #     for re in pst.reactions:
+    #         print(re.reactionType)
+    #     print("\n\n")
+    
+    # print(friends)
+    
+    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline)
+
+@app.route('/friends')
+@jwt_required()
+def friendPage():
+
+    abort(404)
 
 
 #Teardown (don't mess with this)
