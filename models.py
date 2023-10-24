@@ -54,11 +54,12 @@ class Post(db.Model):
     replies = db.relationship('Reply', backref='post', lazy='joined')
     reactions = db.relationship('Reaction', backref='post', lazy='joined')
     deletedAt = db.Column(db.DateTime)
-    def __init__(self, pID, text, target, sharedPID=None):
+    def __init__(self, pID, text, target, sharedPID=None, imgID=None):
         self.posterID = pID
         self.postedOnID = target
         self.textContent = text
         self.sharedPostID = sharedPID
+        self.associatedImageID = imgID
 
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -104,7 +105,6 @@ class Relationship(db.Model):
 class Img(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     img = db.Column(db.LargeBinary, nullable=False)
-    # posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     name = db.Column(db.Text, nullable=False)
     mimetype = db.Column(db.Text, nullable=False)
-    # deletedAt = db.Column(db.DateTime)
+    deletedAt = db.Column(db.DateTime)
