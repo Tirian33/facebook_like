@@ -158,6 +158,10 @@ def homePage():
     acc = Account.query.filter_by(id=userAccID).first()
     return render_template('home.html', account = acc.toDict())
 
+@app.route('/signup')
+def signUpPage():
+    return render_template('signup.html')
+
 
 #Teardown (don't mess with this)
 @app.teardown_appcontext
