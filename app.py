@@ -31,8 +31,11 @@ def softDeleteObjects(listing) -> None:
 
 #Both account IDs are assumed to not be None
 def canMakeContent(targetAccID, posterID):
-    if targetAccID == posterID:
+   
+    if int(targetAccID) == posterID:
         return 1
+    
+    
     targetAcc = Account.query.filter_by(id = targetAccID).first()
 
     if targetAcc is not None:
@@ -155,24 +158,51 @@ def sendFriendRequest():
 @app.route('/api/post', methods=['POST'])
 @jwt_required()
 def makePost():
-    if ((request.json.get('textContent') is None and request.json.get('sharedPostId')is None) or request.json.get('postedOnID') is None):
+    if ((request.form.get('textContent') is None and request.form.get('sharedPostId')is None) or request.form.get('postedOnID') is None):
         abort(400, "Invalid request recieved.")
 
-    targetAccount = Account.query.filter_by(id = request.json.get('postedOnID'), deletedAt = None).first()
+    targetAccount = Account.query.filter_by(id = request.form.get('postedOnID'), deletedAt = None).first()
     if (targetAccount is None):
         abort(400, "Can't find that person to post on.")
     
-    permission = canMakeContent(request.json.get('postedOnID'), get_jwt_identity())
-
+    permission = canMakeContent(request.form.get('postedOnID'), get_jwt_identity())
+    
     if permission == 2:
         abort(400, "You do not have permission to post right now.")
     elif permission == 3:
         abort(400, "You are not friends. You cannot post")
     
+    newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'))
+   
+    # If there is only one image attachment...
+    if len(request.files.getlist('pic')) == 1:
+        # Retrieve the image object
+        pic = request.files['pic']
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
+        
+        # Store the image object
+        db.session.add(img)
+        db.session.commit()
 
-    newPost = Post(get_jwt_identity(), request.json.get('textContent'), request.json.get('postedOnID'), request.json.get('sharedPostId'))
+        # Get the image id
+        img_id = img.id
+
+        newPost.associatedImageID = img_id
+
+    # If there are multiple image attachments, error out.
+    elif len(request.files.getlist('pic')) > 1:
+        abort(400, "Only one image may be uploaded at a time.")
+
+   
+    # # Create and store the new post object with associated image ID
+    # newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'), imgID=img_id)
+    
     db.session.add(newPost)
     db.session.commit()
+    print(newPost.associatedImageID)
+    
     return "OK", 200 #returning "OK"
 
 @app.route('/api/post/<int:postID>', methods=['DELETE'])
