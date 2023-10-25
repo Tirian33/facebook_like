@@ -35,7 +35,7 @@ def canMakeContent(targetAccID, posterID):
     if int(targetAccID) == posterID:
         return 1
     
-    
+
     targetAcc = Account.query.filter_by(id = targetAccID).first()
 
     if targetAcc is not None:
@@ -126,31 +126,35 @@ def accountLogin():
 @app.route('/api/makeFriend', methods=['POST'])
 @jwt_required()
 def sendFriendRequest():
+    print(request.json.get('friendCode'))
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of requested Friend.")
 
-    targetAccount = Account.query.filter_by(friendCode = request.json.get('friendCode'), deletedAt=None).first()
-    
+    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
+   
     if targetAccount is None:
         abort(400, "Friend not found.")
-
+    
     pendingInverse = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
+    
+    # Other person sent a friend request in the past, lets accept
+    if pendingInverse is not None:
+        if pendingInverse.isFriendRelation: 
+            pendingInverse.confirmedRelation = True
+            db.session.add(pendingInverse.makeInverse())
+            db.session.commit()
+            return "OK", 200
 
-    #Other person sent a friend request in the past, lets accept
-    if pendingInverse.isFriendRelation: 
-        pendingInverse.confirmedRelation = True
-        db.session.add(pendingInverse.makeInverse())
-        db.session.commit()
-        return "OK", 200
-
-    #Request was sent in the past
+    # Request was sent in the past
     if Relationship.query.filter_by(firstAccountID = get_jwt_identity(), secondAccountID = targetAccount.id).first() is not None:
         abort(400, "Request already sent")
 
-    #Lets make the request
-    newRelationship = Relationship(get_jwt_identity(), targetAccount.id)
-    db.session.add(newRelationship)
-    db.session.commit()
+    # Lets make the request
+    elif pendingInverse is None:
+        newRelationship = Relationship(get_jwt_identity(), targetAccount.id)
+        db.session.add(newRelationship)
+        db.session.commit()
+    
     return "OK", 200
 
 
