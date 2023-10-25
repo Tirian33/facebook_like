@@ -412,6 +412,10 @@ def friendPage():
 
     abort(404)
 
+@app.route('/signup')
+def signUpPage():
+    return render_template('signup.html')
+
 
 #Teardown (don't mess with this)
 @app.teardown_appcontext
