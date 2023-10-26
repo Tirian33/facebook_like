@@ -356,7 +356,7 @@ def indexPage():
 
 @app.route('/login')
 def loginPage():
-    return render_template('login1.html')
+    return render_template('login.html')
 
 @app.route('/upload')
 def uploadPage():
