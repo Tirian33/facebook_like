@@ -1,0 +1,130 @@
+
+.content-container {
+    display: flex;
+    justify-content: space-between;
+}
+.friends-container {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+
+.friends-header {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+
+.friends-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.friends-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+.friends-list img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.friends-list p {
+    font-size: 16px;
+}
+
+.friend-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.message-button,
+.unfriend-button {
+    padding: 5px 10px;
+    background-color: #1877f2; /* Facebook blue */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+.message-button:hover,
+.unfriend-button:hover {
+    background-color: #1659a3; /* Darker blue on hover */
+}
+
+.pending-requests-container {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.pending-requests-header {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.pending-requests-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.pending-requests-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+.pending-requests-list img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.pending-requests-list p {
+    font-size: 16px;
+}
+
+.request-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.accept-request-button, .decline-request-button {
+    padding: 5px 10px;
+    background-color: #4caf50; /* Green for Accept */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.decline-request-button {
+    background-color: #f44336; /* Red for Decline */
+    margin-left: 10px;
+}
+
+.accept-request-button:hover, .decline-request-button:hover {
+    filter: brightness(0.8);
+}

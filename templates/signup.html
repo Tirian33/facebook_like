@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" type="text/css" href="signup.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <form action="/api/account" method="post" id="regiForm">
+            <div class="form-group">
+                <label for="fName">First Name:</label>
+                <input type="text" id="fName" name="fName" required>
+            </div>
+           <div class="form-group">
+                <label for="lName">Last name:</label>
+                <input type="text" id="lName" name="lName" required>
+            </div>
+            <div class="form-group">
+                <label for="username">User name:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmpassword">Confirm Password:</label>
+                <input type="password" id="confirmpassword" name="confirmpassword" required>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="public" name="public" value="public">
+                <label for="publicview"> Do you want your page to be Public</label><br>    
+            </div>
+            
+            <div class="form-group">
+                <input type="submit" value="Create Account" id="confButton">
+            </div>
+        </form>
+        <script>
+            document.querySelector('#confButton').addEventListener('click', function () {
+                //Prevent normal unhandled submit
+                event.preventDefault();
+
+                //Confirm that Password & ConfPassword match & are valid (8 characters long)
+               if(document.getElementById('password').value != document.getElementById('confirmpassword').value){
+                        alert("Please ensure that your Password matches !");
+               }
+               else if(document.getElementById('password').value.length< 8){
+                alert("Password should be atleast 8 characters !");
+               }
+               else{
+               
+                //Grab the loginForm element
+                var dict = {};
+                var loginData = new FormData(document.querySelector('#regiForm'));
+                loginData.forEach((value, key) => dict[key] = value);
+                //Perform the action of submit button
+                fetch('/api/account', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json',},
+                    body: JSON.stringify(dict), 
+                }).then(function (res){ 
+                    if (res.status == 200)
+                    {
+                        //JWT should be set so lets go to the home page
+                        window.location.href = '/home';
+                    }
+                    else
+                    {
+                        //Make alert pop up
+                        alert('ERRS');
+                    }
+                }).catch(function(error){
+                    //Hopefully we never reach this
+                    console.log("ERROR ON REGI:", error);
+                })
+            }});
+        </script>
+    </div>
+</body>
+</html>
