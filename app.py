@@ -409,8 +409,12 @@ def timeline(accID):
 @app.route('/friends')
 @jwt_required()
 def friendPage():
+    userAccID = get_jwt_identity()
+    acc = Account.query.filter_by(id=userAccID).first()
 
-    abort(404)
+    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+    pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True)).all()
+    return render_template('friends.html', friends = friends, pending = pending)
 
 @app.route('/signup')
 def signUpPage():
