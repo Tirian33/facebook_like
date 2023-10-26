@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Sign Up</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="signup.css">
 </head>
 <body>
     <div class="container">
@@ -42,6 +42,15 @@
                 //Prevent normal unhandled submit
                 event.preventDefault();
 
+                //Confirm that Password & ConfPassword match & are valid (8 characters long)
+               if(document.getElementById('password').value != document.getElementById('confirmpassword').value){
+                        alert("Please ensure that your Password matches !");
+               }
+               else if(document.getElementById('password').value.length< 8){
+                alert("Password should be atleast 8 characters !");
+               }
+               else{
+               
                 //Grab the loginForm element
                 var dict = {};
                 var loginData = new FormData(document.querySelector('#regiForm'));
@@ -66,7 +75,7 @@
                     //Hopefully we never reach this
                     console.log("ERROR ON REGI:", error);
                 })
-            });
+            }});
         </script>
     </div>
 </body>
