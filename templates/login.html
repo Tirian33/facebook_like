@@ -1,58 +1,188 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--Mobile friendly I think-->
-    <title>Login <TITLE></TITLE></title>
-</head>
+<div class="container">
+    <form method="POST", action="/login", id="loginForm">
+      <div class="row">
+        <h2 style="text-align:center">Login to X!</h2>
+       
+        <div class="col">
+          <div class="hide-md-lg">
+          </div>
+  
+          <input type="text" name="username" placeholder="Username" id="username" required>
+          <input type="password" name="password" placeholder="Password" id="password" required>
+          <input type="submit" value="Login", id="loginButton">
 
-<body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form method="POST" action="/login" id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" id="loginButton">Login</button>
-        </form>
-        <script>
-            document.querySelector('#loginButton').addEventListener('click', function () {
-                //Prevent normal unhandled submit
-                event.preventDefault();
-
-                //Grab the loginForm element
-                var dict = {};
-                var loginData = new FormData(document.querySelector('#loginForm'));
-                loginData.forEach((value, key) => dict[key] = value);
-                //Perform the action of submit button
-                fetch('/api/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json',},
-                    body: JSON.stringify(dict), 
-                }).then(function (res){ 
-                    if (res.status == 200)
-                    {
-                        //JWT should be set so lets go to the home page
-                        window.location.href = '/home';
-                    }
-                    else
-                    {
-                        //Make alert pop up
-                        alert('Incorrect username or password. Please try again.');
-                    }
-                }).catch(function(error){
-                    //Hopefully we never reach this
-                    console.log("ERROR ON LOGIN:", error);
-                })
-            });
-        </script>
-        <!-- Register button not ready for implementation yet.
-        <p>Don't have an account? <a href="/register">register</a></p> -->
+        </div>
+  
+      </div>
+    </form>
+</div>
+  
+  <div class="bottom-container">
+    <div class="row">
+      <div class="col">
+        <a href="/register" style="color:white" class="btn">Sign up</a>
+      </div>
+      <div class="col">
+        <a href="#" style="color:white" class="btn">Forgot password?</a>
+      </div>
     </div>
-</body>
-</html>
+  </div>
+
+  <script>
+    document.querySelector('#loginButton').addEventListener('click', function () {
+        
+        //Prevent normal unhandled submit
+        event.preventDefault();
+
+        //Grab the loginForm element
+        var dict = {};
+        var loginData = new FormData(document.querySelector('#loginForm'));
+        loginData.forEach((value, key) => dict[key] = value);
+        
+        //Perform the action of submit button
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dict), 
+        }).then(function (res){ 
+            if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                window.location.href = '/home';
+            }
+            else
+            {
+                //Make alert pop up
+                alert('Incorrect username or password. Please try again.');
+            }
+        }).catch(function(error){
+            //Hopefully we never reach this
+            console.log("ERROR ON LOGIN:", error);
+        })
+    });
+</script>
+
+<script>
+    document.querySelector('#loginButton').addEventListener('click', function () {
+        
+        //Prevent normal unhandled submit
+        event.preventDefault();
+
+        //Grab the loginForm element
+        var dict = {};
+        var loginData = new FormData(document.querySelector('#loginForm'));
+        loginData.forEach((value, key) => dict[key] = value);
+        
+        //Perform the action of submit button
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dict), 
+        }).then(function (res){ 
+            if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                window.location.href = '/home';
+            }
+            else
+            {
+                //Make alert pop up
+                alert('Incorrect username or password. Please try again.');
+            }
+        }).catch(function(error){
+            //Hopefully we never reach this
+            console.log("ERROR ON LOGIN:", error);
+        })
+    });
+</script>
+
+
+<style>
+    * {box-sizing: border-box}
+
+/* style the container */
+.container {
+  position: relative;
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px 0 30px 0;
+}
+
+/* style inputs and link buttons */
+input,
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  margin: 5px 0;
+  opacity: 0.85;
+  display: inline-block;
+  font-size: 17px;
+  line-height: 20px;
+  text-decoration: none; /* remove underline from anchors */
+}
+
+input:hover,
+.btn:hover {
+  opacity: 1;
+}
+
+
+/* style the submit button */
+input[type=submit] {
+  background-color: #04AA6D;
+  color: white;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+/* Two-column layout */
+.col {
+  float: center;
+  width: 50%;
+  margin: auto;
+  padding: 0 50px;
+  margin-top: 6px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+/* hide some text on medium and large screens */
+.hide-md-lg {
+  display: none;
+}
+
+/* bottom container */
+.bottom-container {
+  text-align: center;
+  background-color: #666;
+  border-radius: 0px 0px 4px 4px;
+}
+
+/* Responsive layout - when the screen is less than 650px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 650px) {
+  .col {
+    width: 100%;
+    margin-top: 0;
+  }
+  /* hide the vertical line */
+  .vl {
+    display: none;
+  }
+  /* show the hidden text on small screens */
+  .hide-md-lg {
+    display: block;
+    text-align: center;
+  }
+}
+  </style>

@@ -356,11 +356,15 @@ def indexPage():
 
 @app.route('/login')
 def loginPage():
-    return render_template('login.html')
+    return render_template('login1.html')
 
 @app.route('/upload')
 def uploadPage():
     return render_template('upload.html')
+
+@app.route('/register')
+def registerPage():
+    return render_template('register.html')
 
 @app.route('/home')
 @jwt_required()
