@@ -95,9 +95,9 @@
 .username {
     position: absolute;
     top: 325px;
-    left: 8px;
+    left: -85px;
     display: inline-block;
-    width: 200px;
+    width: 500px;
     height: 36px;
 }
 
