@@ -21,44 +21,23 @@
     <div class="friends-container">
         <h2 class="friends-header">Friends</h2>
         <ul class="friends-list">
+            {% for friend in friends %}
             <li>
                 <img src="friend1.jpg" alt="Friend 1">
-                <p>Friend 1</p>
+                <p>{{friend.name}}Friend 1</p>
                 <div class="friend-buttons">
                 <button class="message-button">Message</button>
                     <button class="unfriend-button">Unfriend</button>
                 </div>
             </li>
-            <li>
-                <img src="friend2.jpg" alt="Friend 2">
-                <p>Friend 2</p>
-                <div class="friend-buttons">
-                <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                </div>    
-            </li>
-      <li>
-                <img src="friend1.jpg" alt="Friend 3">
-                <p>Friend 3</p>
-                <div class="friend-buttons">
-             <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                    </div>
-            </li>
-            <li>
-                <img src="friend2.jpg" alt="Friend 4">
-                <p>Friend 4</p>
-                <div class="friend-buttons">
-                <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                </div>    
-            </li>
+            {% endfor %}
             <!-- Add more friends as needed -->
         </ul>
     </div>
     <div class="pending-requests-container">
         <h2 class="pending-requests-header">Pending Requests</h2>
         <ul class="pending-requests-list">
+            {% for pending in pending %}
             <li>
                 <img src="request1.jpg" alt="Request 1">
                 <p>Request 1</p>
@@ -67,14 +46,7 @@
                     <button class="decline-request-button">Decline</button>
                 </div>
             </li>
-            <li>
-                <img src="request2.jpg" alt="Request 2">
-                <p>Request 2</p>
-                <div class="request-buttons">
-                    <button class="accept-request-button">Accept</button>
-                    <button class="decline-request-button">Decline</button>
-                </div>
-            </li>
+            {% endfor %}
             <!-- Add more pending requests as needed -->
         </ul>
     </div>
