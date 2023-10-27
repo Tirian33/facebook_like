@@ -3,25 +3,24 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
-
-    <link rel="stylesheet" href="./../static/global.css" />
-    <link rel="stylesheet" href="./home.css" />
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" />
+    <link rel="stylesheet" href="static/global.css" />
+    <link rel="stylesheet" href="templates/home.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" />
 </head>
+
 <body>
     <div class="homepage">
-        <button class="create_post_button" alt="" src="./../static/public/create_post.png" />
+        <button class="create_post_button" alt="" src="/static/public/create_post.png">
         </button>
-        <a href="/friends">
+        <a href="friends">
         <button class="friends_page_button"
              alt=""
-             src="./../static/public/friends.png"
-             data-scroll-to="rectangleImage" />
+             src="/static/public/friends.png"
+             data-scroll-to="rectangleImage">
         </button>
         </a>
 
-        <button class="profile_button" alt="" src="./../static/public/profile.png" />
+        <button class="profile_button" alt="" src="/static/public/profile.png">
         </button>
 
         <div class="story-1"></div>
@@ -33,17 +32,17 @@
         <b class="username">Username</b>
 
         <div class="like_button"></div>
-            <button  class="like_button" alt="" src="./../static/public/like.png" >
+            <button  class="like_button" alt="" src="/static/public/like.png" >
             </button>
         
         
 
-            <button class="comment_button" alt="" src="./../static/public/comment.png" />
+            <button class="comment_button" alt="" src="/static/public/comment.png">
             </button>
        
        
 
-            <button class="share_button" alt="" src="./../static/public/share.png" />
+            <button class="share_button" alt="" src="/static/public/share.png">
             </button>
             
 
@@ -51,9 +50,9 @@
             <b class="username1" id="usernameText1">Username</b>
 
             
-                <img class="logo" alt="" src="./../static/public/logo.png" />
+                <img class="logo" alt="" src="/static/public/logo.png" />
             
-            <form action=""
+            <form action="">
         </div>
 
         <script>
@@ -69,3 +68,185 @@
         </script>
 </body>
 </html>
+
+<style>
+.create_post_button,
+.profile_button,
+.create_post_button {
+    position: absolute;
+    background-image: url('static/public/create_post.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    position: absolute;
+    top: 933px;
+    left: 1359px;
+    width: 76px;
+    height: 87px;
+    object-fit: cover;
+    mix-blend-mode: darken;
+}
+
+.profile_button,
+.friends_page_button {
+    position: absolute;
+    background-image: url('static/public/friends.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    top: 860px;
+    left: 1359px;
+    width: 87px;
+    height: 97px;
+    mix-blend-mode: darken;
+}
+
+
+
+.profile_button {
+    position: absolute;
+    background-image: url('static/public/profile.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    top: 0;
+    left: 1342px;
+    width: 98px;
+    height: 95px;
+}
+
+.story1 {
+    position: absolute;
+    top: 53px;
+    left: 236px;
+    background-color: var(--color-gainsboro);
+}
+
+.story1,
+.story2,
+.story3 {
+    border-radius: 50%;
+    width: 176px;
+    height: 180px;
+}
+
+.story2 {
+    position: absolute;
+    top: 53px;
+    left: 470px;
+    background-color: var(--color-gainsboro);
+}
+
+.story3 {
+    top: 43px;
+    left: 746px;
+}
+
+.story3,
+.story4,
+.rectangle-div {
+    position: absolute;
+    background-color: var(--color-gainsboro);
+}
+
+.story4 {
+    top: 53px;
+    left: 1042px;
+    border-radius: 50%;
+    width: 176px;
+    height: 180px;
+}
+
+.rectangle-div {
+    top: 361px;
+    left: 48px;
+    width: 874px;
+    height: 572px;
+}
+
+.username {
+    position: absolute;
+    top: 325px;
+    left: -85px;
+    display: inline-block;
+    width: 500px;
+    height: 36px;
+}
+
+.like_button {
+    position: absolute;
+    background-image:url('static/public/like.png');
+    background-size:cover;
+    background-repeat:no-repeat;
+    border:none;
+    top: 929px;
+    left: 48px;
+    width: 64px;
+    height: 56px;
+    object-fit: cover;
+    mix-blend-mode: darken;
+}
+
+
+.comment_button {
+    position: absolute;
+    background-image: url('static/public/comment.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    position: absolute;
+    top: 937px;
+    left: 112px;
+    width: 42px;
+    height: 40px;
+    object-fit: cover;
+    mix-blend-mode: darken;
+}
+
+.share_button {
+    position: absolute;
+    background-image: url('static/public/share.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: none;
+    top: 929px;
+    left: 160px;
+    width: 64px;
+    height: 56px;
+    mix-blend-mode: darken;
+}
+
+.username1 {
+    position: absolute;
+    top: 76px;
+    left: 1338px;
+    font-size: 16px;
+    display: inline-block;
+    width: 108px;
+    height: 40px;
+    cursor: pointer;
+}
+
+.logo {
+    position: absolute;
+    top: 0;
+    left: 4px;
+    width: 216px;
+    height: 223px;
+    object-fit: cover;
+    mix-blend-mode: darken;
+}
+
+.homepage {
+    position: relative;
+    background-color: #dce4f0;
+    width: 100%;
+    height: 1024px;
+    overflow-x: auto;
+    text-align: center;
+    font-size: 24px;
+    color: var(--color-black);
+    font-family: var(--font-inter);
+}
+
+</style>
