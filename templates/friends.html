@@ -11,7 +11,7 @@
         <img src="cover.jpg" alt="Cover Photo">
     </header>
     <div class="profile-container">
-        <img class="profile-picture" src="profile.jpg" alt="Profile Picture">
+        <img class="profile-picture" src="static/public/profile.jpg" alt="Profile Picture">
         <h1 class="profile-name">Your Name</h1>
         <p class="profile-bio">Write something about yourself.</p>
         <input type="text" id="bio-input" placeholder="Update your bio...">
@@ -23,7 +23,7 @@
         <ul class="friends-list">
             {% for friend in friends %}
             <li>
-                <img src="friend1.jpg" alt="">
+                <img src="static/public/profile.png" alt="">
                 <p>{{friend.id}}</p>
                 <div class="friend-buttons">
                 <button class="message-button">Message</button>
@@ -39,7 +39,7 @@
         <ul class="pending-requests-list">
             {% for pending in pending %}
             <li>
-                <img src="request1.jpg" alt="">
+                <img src="static/public/profile.png" alt="">
                 <p>{{pending.id}}</p>
                 <div class="request-buttons">
                     <button class="accept-request-button">Accept</button>
