@@ -28,7 +28,23 @@
         <div class="story3"></div>
         <div class="story4"></div>
 
-        <div class="rectangle-div"></div>
+        <div class="rectangle-div">
+            <div id="postList">
+                {%for post in timeline %}
+                <div> {{postable[post.posterID]}}: {{post.textContent}}
+                    {% if post.replies %}
+                    <div id="replies">
+                        {% for reply in post.replies %}
+                        <div class="reply">
+                            {{postable[reply.posterID]}} replied with: {{ reply.textContent }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
         <b class="username">Username</b>
 
         <div class="like_button"></div>
