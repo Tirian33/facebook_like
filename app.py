@@ -89,6 +89,10 @@ def makeAccount():
     fName = request.json.get('fName')
     lName = request.json.get('lName')
     public = request.json.get('public')
+    if public == 'public':
+        public = True
+    else:
+        public = False
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
