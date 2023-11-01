@@ -19,7 +19,9 @@
                     <img src="static/public/profile.png" alt="">
                     <p>{{friend.username}}</p>
                     <div class="friend-buttons">
-                        <button class="message-button" data-popup-id="message-popup">Message</button>
+                        <a href="/timeline/{{friend.id}}">
+                        <button class="message-button">View Page</button>
+                        </a>
                         <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Unfriend</button>
                     </div>
                 </li>
@@ -32,6 +34,7 @@
             <form method="POST", action="/api/makeFriend", id="newFriendForm">
                 <input type="text" id="friendCode" name="friendCode" placeholder="Enter friend code...">
                 <button class="message-button" id="send-friend-request-button">submit</button>
+                <label for="UserCode" style="left:150px;">     Your code: {{account.id}}</label>
             </form>
             <h2 class="pending-requests-header">Pending Requests</h2>
             <ul class="pending-requests-list">
