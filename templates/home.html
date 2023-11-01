@@ -9,13 +9,31 @@
 </head>
 
 <body>
+    
+
     <div class="homepage">
-        <a href="upload">
-            <button class="create_post_button" 
+
+        <!-- Modals start -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="postCloseModal">&times;</span>
+            <form id="postForm" action="/api/post" method="POST" enctype="multipart/form-data">
+                <input type="text" id="textContent" name="textContent" placeholder="Post content"><br>
+                <input type="text" id="sharedPostId" name="sharedPostId" style="display: none;"><br>
+                <input type="text" id="postedOnID" name="postedOnID" style="display: none;">
+                <input type="file" name="pic" accept="image/*"><br>
+                <input type="submit" value="Create Post">
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modals end -->
+
+        <button class="create_post_button" 
             alt="Make a Post" 
-            src="/static/public/create_post.png">
-        </button>
-        </a>
+            src="/static/public/create_post.png"
+            id="openPostModal">
         <a href="friends">
         <button class="friends_page_button"
              alt="Friends Page"
@@ -45,7 +63,11 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <button class="comment_button" alt="" src="/static/public/comment.png"></button>
+                    <button class="comment_button" 
+                        alt="" 
+                        src="/static/public/comment.png"
+                        data-post-id="{{ post.id }}">
+                    </button>
                 </div>
                 <hr/>
                 {% endfor %}
@@ -59,6 +81,66 @@
         </div>
 
         <script>
+            //Added by Tirian 10/31/2023
+            
+            // Get the modal elements
+            var postModal = document.getElementById("postModal");
+            var postBTN = document.getElementById("openPostModal");
+            var postCloseBtn = document.getElementById("postCloseModal");
+
+            // Open the postModal
+            postBTN.addEventListener("click", function() {
+                document.getElementById("sharedPostId").value = null; //For now we will assume null; when sharing gets implemented this will change
+                document.getElementById("postedOnID").value = "{{ pageOwner }}";
+                postModal.style.display = "block";
+            });
+
+            // Close postModal when 'x' is clicked
+            postCloseBtn.addEventListener("click", function() {
+                postModal.style.display = "none";
+                console.log("X");
+            });
+
+            // Close postModal b/c user clicked outside of it
+            window.addEventListener("click", function(event) {
+                if (event.target == postModal) {
+                    postModal.style.display = "none";
+                    console.log("OUT");
+                }
+            });
+
+
+            //Listener and processing for /api/post
+            var postForm = document.getElementById("postForm");
+
+            postForm.addEventListener("submit", function(event){
+                event.preventDefault();
+
+                var data = new FormData(postForm);
+
+                fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                    if (res.status == 200){
+                        //All is good reload the page?
+                    } else {
+                        console.log(res);
+                        alert('Something went wrong. Please try again.');
+                    }
+                }).catch(err => {
+                    console.error("Error occured.")
+                });
+
+            });
+
+            //functions
+            function getCookie(name) {
+                var value = "; " + document.cookie;
+                var parts = value.split("; " + name + "=");
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            }
+
+
+
+
             //What the hell are you trying to do here?
             var usernameText1 = document.getElementById("usernameText1");
             if (usernameText1) {
@@ -74,8 +156,34 @@
 </html>
 
 <style>
-.create_post_button,
-.profile_button,
+/* Popup modal */
+.modal {
+            display:none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            text-align: center;
+        }
+
+        /* Close button is picky */
+        .close {
+            color: #555;
+            float: right;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
 .create_post_button {
     position: absolute;
     background-image: url('static/public/create_post.png');
@@ -91,7 +199,6 @@
     mix-blend-mode: darken;
 }
 
-.profile_button,
 .friends_page_button {
     position: absolute;
     background-image: url('static/public/friends.png');

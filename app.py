@@ -179,7 +179,7 @@ def makePost():
     newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'))
    
     # If there is only one image attachment...
-    if len(request.files.getlist('pic')) == 1:
+    if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
         # Retrieve the image object
         pic = request.files['pic']
         filename = secure_filename(pic.filename)
@@ -198,14 +198,9 @@ def makePost():
     # If there are multiple image attachments, error out.
     elif len(request.files.getlist('pic')) > 1:
         abort(400, "Only one image may be uploaded at a time.")
-
-   
-    # # Create and store the new post object with associated image ID
-    # newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'), imgID=img_id)
     
     db.session.add(newPost)
     db.session.commit()
-    print(newPost.associatedImageID)
     
     return "OK", 200 #returning "OK"
 
