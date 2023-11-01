@@ -394,7 +394,7 @@ def get_img(id):
 #Webpages
 @app.route('/')
 def indexPage():
-    return render_template('index.html')
+    return redirect(url_for('loginPage'))
 
 @app.route('/login')
 def loginPage():
