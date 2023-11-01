@@ -29,33 +29,96 @@
         </div>
     </body>
 
-    {%for post in timeline %}
     &nbsp
     <body>
         <div class="profilecard">
-            <div class="profileinfo">
-                <span>{{post.textContent}}</span>
-                <span>{{post.createdAt}}</span>
-            
-            </div>
-            <hr>
-            <div class="followerinfo">
-                <div class="following">
-                    <span>{{friend|length}}</span>
-                    <a href="/friends" style="color:black" class="btn">Friends</a>
+            <form method="POST" action="/api/post" enctype="multipart/form-data" id="postForm">
+                <div class="row">
+                  <h2 style="text-align:center">Create a New Post</h2>
+                  <div class="col">
+                    <div class="hide-md-lg">
+                    </div>
+                    <input type="text" name="textContent" placeholder="What's on your mind?" id="username" required>
+                    <input type="text" id="sharedPostId" name="sharedPostId" value="None" style="display: none;"><br>
+                    <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                    <input type="file" id="actual-btn" name="pic"/>
+                    <input type="submit" value="Create Post", id="loginButton">
+                  </div>
                 </div>
-                <div class="vl"></div>
-                <div class="post">
-                    <span>{{timeline|length}}</span>
-                    <a href="/profile" style="color:black" class="btn">Posts</a>
-                </div>
-            </div>
-            <hr>
+              </form>
         </div>
     </body>
 
+
+    {%for post in timeline %}
+    &nbsp
+    <body>
+        <div class="postcard">
+            <div class="postinfo">
+                <span>{{postable[post.posterID]}} : {{post.textContent}}</span>
+                {% if post.associatedImageID != None %}
+                <img src='/api/images/{{post.associatedImageID}}' class="imghandle"/>
+                <span></span>
+                {% endif %}
+                {% if post.replies %}
+                <hr/>
+                    <div id="replies">
+                        {% for reply in post.replies %}
+                        <div class="reply">
+                            {{postable[reply.posterID]}} replied with: {{ reply.textContent }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <form method="POST" action="/api/reply" enctype="multipart/form-data" id="commentForm" onsubmit="reload()">
+                    <div class="row">
+                        <input type="text" name="textContent" placeholder="Reply to this post..." id="username" required>
+                        <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
+                        <input type="submit" value="Reply", id="loginButton">
+                      </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
     {% endfor %}
     
+    <script>
+        var postForm = document.getElementById("postForm");
+        postForm.addEventListener("submit", function(event){
+                event.preventDefault();
+
+                var data = new FormData(postForm);
+
+                fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                    if (res.status == 200){
+                        location.reload();
+                    } else {
+                        console.log(res);
+                        alert('Something went wrong. Please try again.');
+                    }
+                }).catch(err => {
+                    console.error("Error occured.")
+                });
+
+            });
+
+            //functions
+            function getCookie(name) {
+                var value = "; " + document.cookie;
+                var parts = value.split("; " + name + "=");
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            }
+            function reload() {
+                console.log('something');
+                location.reload();
+                return False;
+            }
+
+
+    </script>
+
+
     <style>
         * {box-sizing: border-box}
     
@@ -173,6 +236,28 @@
     margin-top: 7%;
 }
 
+.postcard {
+    margin: auto;
+    background-color: rgb(219, 218, 217);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-self: left;
+    width: 70%;
+    border-radius: 20px;
+    overflow-x: clip;
+}
+
+.postinfo {
+    display: flex;
+    font-size: 18;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 7%;
+}
+
 .profileinfo>span:nth-of-type(1) {
     font-weight: bold;
 
@@ -247,6 +332,13 @@ hr {
     border-radius: 50%;
     position: absolute;
     bottom: -3rem;
+}
+
+.imghandle {
+
+    height: 400px;
+    width: 80%;
+
 }
 </style>
 
