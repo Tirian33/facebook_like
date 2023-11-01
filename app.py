@@ -300,7 +300,7 @@ def makeReply():
     newReply = Reply(request.form.get('respTo'), get_jwt_identity(), request.form.get('textContent'))
     db.session.add(newReply)
     db.session.commit()
-    return "OK", 200 #returning "OK"
+    return "Okay", 200
 
 @app.route('/api/reply/<int:replyID>', methods=['DELETE'])
 @jwt_required()
@@ -432,12 +432,9 @@ def homePage():
         postable.update(friend.toPostData())
 
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
-    processedTL = []
-    for pst in timeline:
-        processedTL.append(pst.process(acc.id))
 
-    print(processedTL)
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=userAccID)
+   
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()

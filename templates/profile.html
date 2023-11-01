@@ -70,7 +70,7 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-                <form method="POST" action="/api/reply" enctype="multipart/form-data" id="commentForm" onsubmit="reload()">
+                <form method="POST" action="/api/reply" enctype="multipart/form-data" class="commentForm" id = "{{ post.id }}">
                     <div class="row">
                         <input type="text" name="textContent" placeholder="Reply to this post..." id="username" required>
                         <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
@@ -103,16 +103,38 @@
 
             });
 
+        var commentForms = document.querySelectorAll(".commentForm");
+
+        commentForms.forEach((CommentForm) => {reply_to_post(CommentForm)});
+
+        function reply_to_post(commentForm) {
+        commentForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(commentForm);
+
+            fetch('/api/reply', {method: 'POST', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('Something went wrong. Please try again.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+
+
             //functions
             function getCookie(name) {
                 var value = "; " + document.cookie;
                 var parts = value.split("; " + name + "=");
                 if (parts.length === 2) return parts.pop().split(";").shift();
-            }
-            function reload() {
-                console.log('something');
-                location.reload();
-                return False;
             }
 
 
