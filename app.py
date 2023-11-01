@@ -126,9 +126,10 @@ def accountLogin():
 @app.route('/api/makeFriend', methods=['POST'])
 @jwt_required()
 def sendFriendRequest():
-    print(request.json.get('friendCode'))
     if request.json.get('friendCode') is None:
-        abort(400, "Need Friend Code of requested Friend.")
+        abort(400, "Need Friend Code of requested friend.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
 
     targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
    
@@ -157,6 +158,28 @@ def sendFriendRequest():
     
     return "OK", 200
 
+@app.route('/api/declineFriend', methods=['POST'])
+@jwt_required()
+def declineFriendRequest():
+    if request.json.get('friendCode') is None:
+        abort(400, "Need Friend Code of declining friend.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
+
+    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
+   
+    if targetAccount is None:
+        abort(400, "Friend not found.")
+    
+    targetRelationship = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
+    
+    if targetRelationship is None:
+        abort(400, "User has no pending request from specified friendCode.")
+    
+    targetRelationship.deletedAt = datetime.now()
+    db.session.commit()
+    
+    return "OK", 200
 
 #Post related
 @app.route('/api/post', methods=['POST'])
