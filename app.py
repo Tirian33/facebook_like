@@ -347,7 +347,7 @@ def get_img(id):
 #Webpages
 @app.route('/')
 def indexPage():
-    return redirect(url_for('loginPage'))
+    return render_template('index.html')
 
 @app.route('/login')
 def loginPage():
@@ -427,7 +427,7 @@ def friendPage():
 
     friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
     pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True)).all()
-    return render_template('friends.html', friends = friends, pending = pending)
+    return render_template('friends.html', account = acc.toDict(), friends = friends, pending = pending)
 
 @app.route('/signup')
 def signUpPage():

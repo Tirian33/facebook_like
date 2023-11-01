@@ -1,65 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Facebook-Like Page</title>
-    <link rel="stylesheet" href="friends.css">
 </head>
 <body>
     <header class="cover-photo">
-        <img src="cover.jpg" alt="Cover Photo">
+       
     </header>
     <div class="profile-container">
-        <img class="profile-picture" src="static/public/profile.jpg" alt="Profile Picture">
-        <h1 class="profile-name">Your Name</h1>
-        <p class="profile-bio">Write something about yourself.</p>
-        <input type="text" id="bio-input" placeholder="Update your bio...">
-
+        <!--profile container  -->
+        <h1 class="profile-name">{{account.username}}</h1>
     </div>
     <div class="content-container">
-    <div class="friends-container">
-        <h2 class="friends-header">Friends</h2>
-        <ul class="friends-list">
-            {% for friend in friends %}
-            <li>
-                <img src="static/public/profile.png" alt="">
-                <p>{{friend.id}}</p>
-                <div class="friend-buttons">
-                <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                </div>
-            </li>
-            {% endfor %}
-            <!-- Add more friends as needed -->
-        </ul>
+        <div class="friends-container">
+            <h2 class="friends-header">Friends</h2>
+            <ul class="friends-list">
+                {% for friend in friends %}
+                <li>
+                    <img src="static/public/profile.png" alt="">
+                    <p>{{friend.username}}</p>
+                    <div class="friend-buttons">
+                        <button class="message-button" data-popup-id="message-popup">Message</button>
+                        <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}">Unfriend</button>
+                    </div>
+                </li>
+                {% endfor %}
+                <!-- Add more friends as needed -->
+            </ul>
+        </div>
+        <div class="pending-requests-container">
+            <h2 class="pending-requests-header">Pending Requests</h2>
+            <ul class="pending-requests-list">
+                {% for pending in pending %}
+                <li>
+                    <img src="static/public/profile.png" alt="">
+                    <p>{{pending.username}}</p>
+                    <div class="request-buttons">
+                        <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}">Accept</button>
+                        <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}">Decline</button>
+                    </div>
+                </li>
+                {% endfor %}
+                <!-- Add more pending requests as needed -->
+            </ul>
+        </div>
     </div>
-    <div class="pending-requests-container">
-        <h2 class="pending-requests-header">Pending Requests</h2>
-        <ul class="pending-requests-list">
-            {% for pending in pending %}
-            <li>
-                <img src="static/public/profile.png" alt="">
-                <p>{{pending.id}}</p>
-                <div class="request-buttons">
-                    <button class="accept-request-button">Accept</button>
-                    <button class="decline-request-button">Decline</button>
-                </div>
-            </li>
-            {% endfor %}
-            <!-- Add more pending requests as needed -->
-        </ul>
-    </div>
-  </div>
   
-  
-     <!-- Message Pop-up -->
-     <div id="message-popup" class="popup">
+    <!-- Message Pop-up -->
+    <div id="message-popup" class="popup">
         <div class="popup-content">
             <span class="close" id="close-message-popup">&times;</span>
-            <h2>Send a Message</h2>
-            <textarea id="message-text" placeholder="Type your message here..."></textarea>
+            <h2>Send a Message to <span id="message-popup-username"></span></h2>
+            <textarea id="message-text" placeholder="Type your message here..."style="width: 305px; height: 112px;"></textarea>
             <button id="send-message-button">Send</button>
+        </div>
+    </div>
+
+    <!-- Unfriend Pop-up -->
+    <div id="unfriend-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-unfriend-popup">&times;</span>
+            <h2>Unfriend <span id="unfriend-popup-username"></span></h2>
+            <p>Are you sure you want to unfriend this person?</p>
+            <button id="unfriend-confirm">Unfriend</button>
         </div>
     </div>
 
@@ -67,7 +69,7 @@
     <div id="accept-popup" class="popup">
         <div class="popup-content">
             <span class="close" id="close-accept-popup">&times;</span>
-            <h2>Accept Friend Request</h2>
+            <h2>Accept Friend Request from <span id="accept-popup-username"></span></h2>
             <p>Are you sure you want to accept this friend request?</p>
             <button id="accept-request-confirm">Accept</button>
         </div>
@@ -77,28 +79,34 @@
     <div id="decline-popup" class="popup">
         <div class="popup-content">
             <span class="close" id="close-decline-popup">&times;</span>
-            <h2>Decline Friend Request</h2>
+            <h2>Decline Friend Request from <span id="decline-popup-username"></span></h2>
             <p>Are you sure you want to decline this friend request?</p>
             <button id="decline-request-confirm">Decline</button>
         </div>
     </div>
 
-
     <!-- Your script tag for JavaScript -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button");
+            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button");
             const closePopupButtons = document.querySelectorAll(".close");
             const popups = document.querySelectorAll(".popup");
-    
+
             openPopupButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const popupId = button.getAttribute("data-popup-id");
                     const popup = document.getElementById(popupId);
-                    popup.style.display = "block";
+                    popup.style.display = "flex";
+
+                    if (popupId === "message-popup" || popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
+                        const friendId = button.getAttribute("data-friend-id");
+                        const friendName = button.parentElement.previousElementSibling.innerText;
+                        const popupUsername = document.getElementById(`${popupId}-username`);
+                        popupUsername.textContent = friendName;
+                    }
                 });
             });
-    
+
             closePopupButtons.forEach(closeButton => {
                 closeButton.addEventListener("click", () => {
                     popups.forEach(popup => {
@@ -108,9 +116,10 @@
             });
         });
     </script>
-
 </body>
 </html>
+
+
 
 <style>
 .content-container {
@@ -227,8 +236,8 @@
 
 .accept-request-button, .decline-request-button {
     padding: 5px 10px;
-    background-color: #4caf50; /* Green for Accept */
-    color: #ffffff;
+    background-color: #4caf50;  /* Green for Accept */
+    color: #ffffff; 
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -261,7 +270,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #fff;
+    background-color: #ffffff;
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 5px;
