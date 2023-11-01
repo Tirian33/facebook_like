@@ -29,8 +29,10 @@
         </div>
         <div class="pending-requests-container">
             <h2 class="pending-requests-header">Send Friend Request</h2>
-            <input type="text" id="bio-input" placeholder="Enter friend code...">
-            <button class="message-button" id="send-friend-request-button">submit</button>
+            <form method="POST", action="/api/makeFriend", id="newFriendForm">
+                <input type="text" id="friendCode" name="friendCode" placeholder="Enter friend code...">
+                <button class="message-button" id="send-friend-request-button">submit</button>
+            </form>
             <h2 class="pending-requests-header">Pending Requests</h2>
             <ul class="pending-requests-list">
                 {% for pending in pending %}
@@ -90,6 +92,36 @@
 
     <!-- Your script tag for JavaScript -->
     <script>
+        //Friend Request Maker
+        var friendForm = document.getElementById("newFriendForm");
+        friendForm.addEventListener("submit", function(event){
+                event.preventDefault();
+
+                var dict = {};
+                var data = new FormData(friendForm);
+                data.forEach((value, key) => dict[key] = value);
+
+                fetch('/api/makeFriend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(dict), 
+                }).then(function (res){ 
+                    if (res.status == 200)
+                    {
+                        alert('Friend Request sent!');
+                    }
+                    else
+                    {
+                        //Make alert pop up
+                        alert('Unable to find that user.');
+                    }
+                }).catch(function(error){
+                    //Hopefully we never reach this
+                    console.log("ERROR ON FRIEND:", error);
+                });
+
+        });
+
         document.addEventListener("DOMContentLoaded", function() {
             const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button");
             const closePopupButtons = document.querySelectorAll(".close");
