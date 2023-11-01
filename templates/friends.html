@@ -20,7 +20,7 @@
                     <p>{{friend.username}}</p>
                     <div class="friend-buttons">
                         <button class="message-button" data-popup-id="message-popup">Message</button>
-                        <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}">Unfriend</button>
+                        <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Unfriend</button>
                     </div>
                 </li>
                 {% endfor %}
@@ -40,8 +40,8 @@
                     <img src="static/public/profile.png" alt="">
                     <p>{{pending.username}}</p>
                     <div class="request-buttons">
-                        <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}">Accept</button>
-                        <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}">Decline</button>
+                        <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
+                        <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Decline</button>
                     </div>
                 </li>
                 {% endfor %}
@@ -66,7 +66,7 @@
             <span class="close" id="close-unfriend-popup">&times;</span>
             <h2>Unfriend <span id="unfriend-popup-username"></span></h2>
             <p>Are you sure you want to unfriend this person?</p>
-            <button id="unfriend-confirm">Unfriend</button>
+            <button id="unfriend-popup-confirm">Unfriend</button>
         </div>
     </div>
 
@@ -76,7 +76,7 @@
             <span class="close" id="close-accept-popup">&times;</span>
             <h2>Accept Friend Request from <span id="accept-popup-username"></span></h2>
             <p>Are you sure you want to accept this friend request?</p>
-            <button id="accept-request-confirm">Accept</button>
+            <button id="accept-popup-confirm">Accept</button>
         </div>
     </div>
 
@@ -86,7 +86,7 @@
             <span class="close" id="close-decline-popup">&times;</span>
             <h2>Decline Friend Request from <span id="decline-popup-username"></span></h2>
             <p>Are you sure you want to decline this friend request?</p>
-            <button id="decline-request-confirm">Decline</button>
+            <button id="decline-popup-confirm">Decline</button>
         </div>
     </div>
 
@@ -132,12 +132,74 @@
                     const popupId = button.getAttribute("data-popup-id");
                     const popup = document.getElementById(popupId);
                     popup.style.display = "flex";
+                    console.log("Clicked a " + popupId + " button.");
 
-                    if (popupId === "message-popup" || popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
+                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
                         const friendId = button.getAttribute("data-friend-id");
                         const friendName = button.parentElement.previousElementSibling.innerText;
+                        const friendCode = button.getAttribute("data-friend-code");
                         const popupUsername = document.getElementById(`${popupId}-username`);
                         popupUsername.textContent = friendName;
+                        const popupBTN = document.getElementById(`${popupId}-confirm`);
+
+                        popupBTN.addEventListener("click", () => {
+                            //action should call removeFriend
+                            console.log("Triggered");
+                            if (popupId === "unfriend-popup") {
+                                fetch('/api/removeFriend', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend removed successfully.');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to remove friend.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON REMOVE FRIEND:", error);
+                                    });
+                            } else if (popupId === "decline-popup") {
+                                //action should call makeFriend
+                                fetch('/api/declineFriend', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend request rejected!');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to reject friend request.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON ACCEPT FRIEND REQUEST:", error);
+                                    });
+                            } else if (popupId === "accept-popup") {
+                                //action should call makeFriend
+                                fetch('/api/makeFriend', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend request accepted!');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to accept friend request.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON ACCEPT FRIEND REQUEST:", error);
+                                    });
+                            }
+                            //Popup needs to close
+                            popup.style.display = "none";
+                        })
+                        
                     }
                 });
             });

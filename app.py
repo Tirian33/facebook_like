@@ -161,6 +161,7 @@ def sendFriendRequest():
 @app.route('/api/declineFriend', methods=['POST'])
 @jwt_required()
 def declineFriendRequest():
+    print(request.json)
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of declining friend.")
     elif len(request.json.get('friendCode')) != 8:
@@ -184,6 +185,7 @@ def declineFriendRequest():
 @app.route('/api/removeFriend', methods=['POST'])
 @jwt_required()
 def removeFriend():
+    print(request.json)
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of ex-friend.")
     elif len(request.json.get('friendCode')) != 8:
@@ -470,8 +472,8 @@ def friendPage():
     userAccID = get_jwt_identity()
     acc = Account.query.filter_by(id=userAccID).first()
 
-    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
-    pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True)).all()
+    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
+    pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
     return render_template('friends.html', account = acc.toDict(), friends = friends, pending = pending)
 
 @app.route('/signup')
