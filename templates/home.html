@@ -120,7 +120,7 @@
 
                 fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
                     if (res.status == 200){
-                        //All is good reload the page?
+                        location.reload();
                     } else {
                         console.log(res);
                         alert('Something went wrong. Please try again.');
