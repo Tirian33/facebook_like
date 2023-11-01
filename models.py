@@ -29,6 +29,11 @@ class Account(db.Model):
             'friendCode' : self.friendCode,
         }
         return dictForm
+    
+    def toPostData(self):
+        data = {}
+        data[self.id] = self.fName + " " + self.lName
+        return data
 
 
     def __init__(self, username, passwordUnhashed, first, last, public = False):
@@ -54,6 +59,7 @@ class Post(db.Model):
     replies = db.relationship('Reply', backref='post', lazy='joined')
     reactions = db.relationship('Reaction', backref='post', lazy='joined')
     deletedAt = db.Column(db.DateTime)
+
     def __init__(self, pID, text, target, sharedPID=None, imgID=None):
         self.posterID = pID
         self.postedOnID = target

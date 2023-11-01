@@ -88,7 +88,7 @@ def makeAccount():
     password = request.json.get('password')
     fName = request.json.get('fName')
     lName = request.json.get('lName')
-    public = request.json.get('public')
+    public = request.json.get('public') == 'public'
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
@@ -352,7 +352,7 @@ def get_img(id):
 #Webpages
 @app.route('/')
 def indexPage():
-    return render_template('login.html')
+    return render_template('index.html')
 
 @app.route('/login')
 def loginPage():
@@ -373,27 +373,21 @@ def homePage():
     acc = Account.query.filter_by(id=userAccID).first()
 
     #Gets all the accounts that are friends with the user.
-    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+    allFriends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+
+    friends = []
+    postable = {}
+    postable.update(acc.toPostData())
+
+    for friend in allFriends:
+        if friend.deletedAt is None:
+            friends.append(friend.toDict())
+        postable.update(friend.toPostData())
+
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).all()
 
-    # print(timeline)
-
-    # for pst in timeline:
-    #     print("POST CONTENT:")
-    #     print(pst.textContent)
-    #     print("REPLIES:")
-    #     print(pst.replies)
-    #     for rep in pst.replies:
-    #         print(rep.textContent)
-    #     print("REACTIONS:")
-    #     print(pst.reactions)
-    #     for re in pst.reactions:
-    #         print(re.reactionType)
-    #     print("\n\n")
-    
-    # print(friends)
-
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline)
+    print(postable)
+    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
