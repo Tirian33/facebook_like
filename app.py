@@ -384,10 +384,10 @@ def homePage():
             friends.append(friend.toDict())
         postable.update(friend.toPostData())
 
-    timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).all()
+    timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
 
     print(postable)
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable)
+    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
@@ -402,7 +402,27 @@ def timeline(accID):
         abort(401, description="You are not friends.")
     #Has permission to View
     timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).all()
-    abort(404)
+
+    myAcc = Account.query.filter_by(id=get_jwt_identity()).first()
+    targetAcc = Account.query.filter_by(id=accID).first()
+
+    #Gets all the accounts that are friends with the user.
+    allFriends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == accID) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+
+    friends = []
+    postable = {}
+    postable.update(targetAcc.toPostData())
+
+    for friend in allFriends:
+        if friend.deletedAt is None:
+            friends.append(friend.toDict())
+        postable.update(friend.toPostData())
+
+    timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).order_by(Post.id.desc()).all()
+
+    print(postable)
+    return render_template('home.html', account = myAcc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=accID)
+
 
 @app.route('/friends')
 @jwt_required()
