@@ -9,12 +9,34 @@
 </head>
 
 <body>
+    
+
     <div class="homepage">
-        <button class="create_post_button" alt="" src="/static/public/create_post.png">
-        </button>
+
+        <!-- Modals start -->
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="postCloseModal">&times;</span>
+            <form id="postForm" action="/api/post" method="POST" enctype="multipart/form-data">
+                <input type="text" id="textContent" name="textContent" placeholder="Post content"><br>
+                <input type="text" id="sharedPostId" name="sharedPostId" style="display: none;"><br>
+                <input type="text" id="postedOnID" name="postedOnID" style="display: none;">
+                <input type="file" name="pic" accept="image/*"><br>
+                <input type="submit" value="Create Post">
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modals end -->
+
+        <button class="create_post_button" 
+            alt="Make a Post" 
+            src="/static/public/create_post.png"
+            id="openPostModal">
         <a href="friends">
         <button class="friends_page_button"
-             alt=""
+             alt="Friends Page"
              src="/static/public/friends.png"
              data-scroll-to="rectangleImage">
         </button>
@@ -23,39 +45,103 @@
         <button class="profile_button" alt="" src="/static/public/profile.png">
         </button>
 
-        <div class="story-1"></div>
-        <div class="story2"></div>
-        <div class="story3"></div>
-        <div class="story4"></div>
-
-        <div class="rectangle-div"></div>
-        <b class="username">Username</b>
-
-        <div class="like_button"></div>
-            <button  class="like_button" alt="" src="/static/public/like.png" >
-            </button>
-        
-        
-
-            <button class="comment_button" alt="" src="/static/public/comment.png">
-            </button>
-       
-       
-
-            <button class="share_button" alt="" src="/static/public/share.png">
-            </button>
-            
-
-
-            <b class="username1" id="usernameText1">Username</b>
-
-            
+        <div class="rectangle-div">
+            <div id="postList">
+                {%for post in timeline %}
+                <div> {{postable[post.posterID]}}: {{post.textContent}}
+                    <br/>
+                    <div>
+                        <button class="like_button" alt="Like Post" src="/static/public/like.png" ></button>
+                        <button class="share_button" alt="Share Post" src="/static/public/share.png"></button>
+                    </div>
+                    {% if post.replies %}
+                    <div id="replies">
+                        {% for reply in post.replies %}
+                        <div class="reply">
+                            {{postable[reply.posterID]}} replied with: {{ reply.textContent }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <button class="comment_button" 
+                        alt="" 
+                        src="/static/public/comment.png"
+                        data-post-id="{{ post.id }}">
+                    </button>
+                </div>
+                <hr/>
+                {% endfor %}
+            </div>
+        </div>
+        <b class="username">{{postable[pageOwner]}}</b>
+            <b class="username1" id="usernameText1">{{account.fName}} {{account.lName}}</b>
                 <img class="logo" alt="" src="/static/public/logo.png" />
             
             <form action="">
         </div>
 
         <script>
+            //Added by Tirian 10/31/2023
+            
+            // Get the modal elements
+            var postModal = document.getElementById("postModal");
+            var postBTN = document.getElementById("openPostModal");
+            var postCloseBtn = document.getElementById("postCloseModal");
+
+            // Open the postModal
+            postBTN.addEventListener("click", function() {
+                document.getElementById("sharedPostId").value = null; //For now we will assume null; when sharing gets implemented this will change
+                document.getElementById("postedOnID").value = "{{ pageOwner }}";
+                postModal.style.display = "block";
+            });
+
+            // Close postModal when 'x' is clicked
+            postCloseBtn.addEventListener("click", function() {
+                postModal.style.display = "none";
+                console.log("X");
+            });
+
+            // Close postModal b/c user clicked outside of it
+            window.addEventListener("click", function(event) {
+                if (event.target == postModal) {
+                    postModal.style.display = "none";
+                    console.log("OUT");
+                }
+            });
+
+
+            //Listener and processing for /api/post
+            var postForm = document.getElementById("postForm");
+
+            postForm.addEventListener("submit", function(event){
+                event.preventDefault();
+
+                var data = new FormData(postForm);
+
+                fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                    if (res.status == 200){
+                        location.reload();
+                    } else {
+                        console.log(res);
+                        alert('Something went wrong. Please try again.');
+                    }
+                }).catch(err => {
+                    console.error("Error occured.")
+                });
+
+            });
+
+            //functions
+            function getCookie(name) {
+                var value = "; " + document.cookie;
+                var parts = value.split("; " + name + "=");
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            }
+
+
+
+
+            //What the hell are you trying to do here?
             var usernameText1 = document.getElementById("usernameText1");
             if (usernameText1) {
                 usernameText1.addEventListener("click", function () {
@@ -70,8 +156,34 @@
 </html>
 
 <style>
-.create_post_button,
-.profile_button,
+/* Popup modal */
+.modal {
+            display:none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            text-align: center;
+        }
+
+        /* Close button is picky */
+        .close {
+            color: #555;
+            float: right;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
 .create_post_button {
     position: absolute;
     background-image: url('static/public/create_post.png');
@@ -87,7 +199,6 @@
     mix-blend-mode: darken;
 }
 
-.profile_button,
 .friends_page_button {
     position: absolute;
     background-image: url('static/public/friends.png');
@@ -115,52 +226,12 @@
     height: 95px;
 }
 
-.story1 {
-    position: absolute;
-    top: 53px;
-    left: 236px;
-    background-color: var(--color-gainsboro);
-}
-
-.story1,
-.story2,
-.story3 {
-    border-radius: 50%;
-    width: 176px;
-    height: 180px;
-}
-
-.story2 {
-    position: absolute;
-    top: 53px;
-    left: 470px;
-    background-color: var(--color-gainsboro);
-}
-
-.story3 {
-    top: 43px;
-    left: 746px;
-}
-
-.story3,
-.story4,
 .rectangle-div {
     position: absolute;
     background-color: var(--color-gainsboro);
-}
-
-.story4 {
-    top: 53px;
-    left: 1042px;
-    border-radius: 50%;
-    width: 176px;
-    height: 180px;
-}
-
-.rectangle-div {
     top: 361px;
     left: 48px;
-    width: 874px;
+    width: 1200px;
     height: 572px;
 }
 
@@ -174,13 +245,10 @@
 }
 
 .like_button {
-    position: absolute;
     background-image:url('static/public/like.png');
     background-size:cover;
     background-repeat:no-repeat;
     border:none;
-    top: 929px;
-    left: 48px;
     width: 64px;
     height: 56px;
     object-fit: cover;
@@ -189,14 +257,10 @@
 
 
 .comment_button {
-    position: absolute;
     background-image: url('static/public/comment.png');
     background-size: cover;
     background-repeat: no-repeat;
     border: none;
-    position: absolute;
-    top: 937px;
-    left: 112px;
     width: 42px;
     height: 40px;
     object-fit: cover;
@@ -204,13 +268,10 @@
 }
 
 .share_button {
-    position: absolute;
     background-image: url('static/public/share.png');
     background-size: cover;
     background-repeat: no-repeat;
     border: none;
-    top: 929px;
-    left: 160px;
     width: 64px;
     height: 56px;
     mix-blend-mode: darken;

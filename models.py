@@ -29,6 +29,11 @@ class Account(db.Model):
             'friendCode' : self.friendCode,
         }
         return dictForm
+    
+    def toPostData(self):
+        data = {}
+        data[self.id] = self.fName + " " + self.lName
+        return data
 
 
     def __init__(self, username, passwordUnhashed, first, last, public = False):
@@ -49,11 +54,13 @@ class Post(db.Model):
     postedOnID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
     sharedPostID = db.Column(db.Integer, nullable=True)
-    associatedImageID = db.Column(db.Integer, db.ForeignKey('img.id'), nullable=True)
-    associatedImage = db.relationship('Img', foreign_keys=[associatedImageID], )
+    #sharedPost = db.relationship('Post', foreign_keys=[sharedPostID], lazy='joined')
+    associatedImageID = db.Column(db.Integer, nullable=True)
+    #associatedImage = db.relationship('Img', foreign_keys=[associatedImageID], lazy='joined')
     replies = db.relationship('Reply', backref='post', lazy='joined')
     reactions = db.relationship('Reaction', backref='post', lazy='joined')
     deletedAt = db.Column(db.DateTime)
+
     def __init__(self, pID, text, target, sharedPID=None, imgID=None):
         self.posterID = pID
         self.postedOnID = target

@@ -24,41 +24,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    document.querySelector('#loginButton').addEventListener('click', function () {
-        
-        //Prevent normal unhandled submit
-        event.preventDefault();
-
-        //Grab the loginForm element
-        var dict = {};
-        var loginData = new FormData(document.querySelector('#loginForm'));
-        loginData.forEach((value, key) => dict[key] = value);
-        
-        //Perform the action of submit button
-        fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(dict), 
-        }).then(function (res){ 
-            if (res.status == 200)
-            {
-                //JWT should be set so lets go to the home page
-                window.location.href = '/home';
-            }
-            else
-            {
-                //Make alert pop up
-                alert('Incorrect username or password. Please try again.');
-            }
-        }).catch(function(error){
-            //Hopefully we never reach this
-            console.log("ERROR ON LOGIN:", error);
-        })
-    });
-</script>
-
 <script>
     document.querySelector('#loginButton').addEventListener('click', function () {
         

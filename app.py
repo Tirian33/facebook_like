@@ -130,9 +130,10 @@ def accountLogin():
 @app.route('/api/makeFriend', methods=['POST'])
 @jwt_required()
 def sendFriendRequest():
-    print(request.json.get('friendCode'))
     if request.json.get('friendCode') is None:
-        abort(400, "Need Friend Code of requested Friend.")
+        abort(400, "Need Friend Code of requested friend.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
 
     targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
    
@@ -161,6 +162,52 @@ def sendFriendRequest():
     
     return "OK", 200
 
+@app.route('/api/declineFriend', methods=['POST'])
+@jwt_required()
+def declineFriendRequest():
+    print(request.json)
+    if request.json.get('friendCode') is None:
+        abort(400, "Need Friend Code of declining friend.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
+
+    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
+   
+    if targetAccount is None:
+        abort(400, "Friend not found.")
+    
+    targetRelationship = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
+    
+    if targetRelationship is None:
+        abort(400, "User has no pending request from specified friendCode.")
+    
+    targetRelationship.deletedAt = datetime.now()
+    db.session.commit()
+    
+    return "OK", 200
+
+@app.route('/api/removeFriend', methods=['POST'])
+@jwt_required()
+def removeFriend():
+    print(request.json)
+    if request.json.get('friendCode') is None:
+        abort(400, "Need Friend Code of ex-friend.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
+
+    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
+   
+    if targetAccount is None:
+        abort(400, "Ex-friend not found.")
+    
+    targetRelationship = Relationship.query.filter_by(secondAccountID = targetAccount.id, firstAccountID = get_jwt_identity(), deletedAt = None).first()
+    targetRelationshipInv = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
+    
+    targetRelationship.deletedAt = datetime.now()
+    targetRelationshipInv.deletedAt = datetime.now()
+    db.session.commit()
+    
+    return "OK", 200
 
 #Post related
 @app.route('/api/post', methods=['POST'])
@@ -183,7 +230,7 @@ def makePost():
     newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'))
    
     # If there is only one image attachment...
-    if len(request.files.getlist('pic')) == 1:
+    if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
         # Retrieve the image object
         pic = request.files['pic']
         filename = secure_filename(pic.filename)
@@ -202,14 +249,9 @@ def makePost():
     # If there are multiple image attachments, error out.
     elif len(request.files.getlist('pic')) > 1:
         abort(400, "Only one image may be uploaded at a time.")
-
-   
-    # # Create and store the new post object with associated image ID
-    # newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'), imgID=img_id)
     
     db.session.add(newPost)
     db.session.commit()
-    print(newPost.associatedImageID)
     
     return "OK", 200 #returning "OK"
 
@@ -356,7 +398,7 @@ def get_img(id):
 #Webpages
 @app.route('/')
 def indexPage():
-    return render_template('index.html')
+    return redirect(url_for('loginPage'))
 
 @app.route('/login')
 def loginPage():
@@ -377,27 +419,21 @@ def homePage():
     acc = Account.query.filter_by(id=userAccID).first()
 
     #Gets all the accounts that are friends with the user.
-    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
-    timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).all()
+    allFriends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
 
-    # print(timeline)
+    friends = []
+    postable = {}
+    postable.update(acc.toPostData())
 
-    # for pst in timeline:
-    #     print("POST CONTENT:")
-    #     print(pst.textContent)
-    #     print("REPLIES:")
-    #     print(pst.replies)
-    #     for rep in pst.replies:
-    #         print(rep.textContent)
-    #     print("REACTIONS:")
-    #     print(pst.reactions)
-    #     for re in pst.reactions:
-    #         print(re.reactionType)
-    #     print("\n\n")
-    
-    # print(friends)
+    for friend in allFriends:
+        if friend.deletedAt is None:
+            friends.append(friend.toDict())
+        postable.update(friend.toPostData())
 
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline)
+    timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
+
+    print(postable)
+    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
@@ -412,7 +448,27 @@ def timeline(accID):
         abort(401, description="You are not friends.")
     #Has permission to View
     timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).all()
-    abort(404)
+
+    myAcc = Account.query.filter_by(id=get_jwt_identity()).first()
+    targetAcc = Account.query.filter_by(id=accID).first()
+
+    #Gets all the accounts that are friends with the user.
+    allFriends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == accID) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
+
+    friends = []
+    postable = {}
+    postable.update(targetAcc.toPostData())
+
+    for friend in allFriends:
+        if friend.deletedAt is None:
+            friends.append(friend.toDict())
+        postable.update(friend.toPostData())
+
+    timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).order_by(Post.id.desc()).all()
+
+    print(postable)
+    return render_template('home.html', account = myAcc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=accID)
+
 
 @app.route('/friends')
 @jwt_required()
@@ -420,9 +476,9 @@ def friendPage():
     userAccID = get_jwt_identity()
     acc = Account.query.filter_by(id=userAccID).first()
 
-    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
-    pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True)).all()
-    return render_template('friends.html', friends = friends, pending = pending)
+    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
+    pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
+    return render_template('friends.html', account = acc.toDict(), friends = friends, pending = pending)
 
 @app.route('/signup')
 def signUpPage():
