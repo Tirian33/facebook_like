@@ -427,9 +427,12 @@ def homePage():
         postable.update(friend.toPostData())
 
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
+    processedTL = []
+    for pst in timeline:
+        processedTL.append(pst.process(acc.id))
 
-    print(postable)
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
+    print(processedTL)
+    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
@@ -442,8 +445,6 @@ def timeline(accID):
         abort(401, description="Profile is private.")
     elif permission == 3:
         abort(401, description="You are not friends.")
-    #Has permission to View
-    timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).all()
 
     myAcc = Account.query.filter_by(id=get_jwt_identity()).first()
     targetAcc = Account.query.filter_by(id=accID).first()
@@ -461,9 +462,12 @@ def timeline(accID):
         postable.update(friend.toPostData())
 
     timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).order_by(Post.id.desc()).all()
+    processedTL = []
+    for pst in timeline:
+        processedTL.append(pst.process(myAcc.id))
 
-    print(postable)
-    return render_template('home.html', account = myAcc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=accID)
+    print(processedTL)
+    return render_template('home.html', account = myAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID)
 
 
 @app.route('/friends')
@@ -474,7 +478,16 @@ def friendPage():
 
     friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
     pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
-    return render_template('friends.html', account = acc.toDict(), friends = friends, pending = pending)
+    friendsProcessed = []
+    pendingProcessed = []
+
+    for f in friends:
+        friendsProcessed.append(f.toDict())
+    
+    for p in pending:
+        pendingProcessed.append(p.toDict())
+    
+    return render_template('friends.html', account = acc.toDict(), friends = friendsProcessed, pending = pendingProcessed)
 
 @app.route('/signup')
 def signUpPage():

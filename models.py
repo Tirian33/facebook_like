@@ -54,12 +54,44 @@ class Post(db.Model):
     postedOnID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
     sharedPostID = db.Column(db.Integer, nullable=True)
-    #sharedPost = db.relationship('Post', foreign_keys=[sharedPostID], lazy='joined')
     associatedImageID = db.Column(db.Integer, nullable=True)
-    #associatedImage = db.relationship('Img', foreign_keys=[associatedImageID], lazy='joined')
     replies = db.relationship('Reply', backref='post', lazy='joined')
     reactions = db.relationship('Reaction', backref='post', lazy='joined')
+    createdAt = db.Column(db.DateTime)
+    editedAt = db.Column(db.DateTime)
     deletedAt = db.Column(db.DateTime)
+
+    def process(self, callerAccId):
+        userReacted = False
+        sharedPostTxt = ""
+        sharedPostImg = ""
+
+        for react in self.reactions:
+            if react.posterID == callerAccId:
+                userReacted = True
+
+        if self.sharedPostID is not None and self.sharedPostID != 0:
+            targPst = Post.query.filter_by(id=self.sharedPostID).first()
+            sharedPostTxt = targPst.textContent
+            sharedPostImg = targPst.associatedImageID
+
+        dictForm = {
+            'id' : self.id,
+            'posterID' : self.posterID,
+            'postedOnID' : self.postedOnID,
+            'textContent' : self.textContent,
+            'sharedPostID' : self.sharedPostID,
+            'associatedImageID' : self.associatedImageID,
+            'replies' : self.replies,
+            'reactions' : len(self.reactions),
+            'createdAt' : self.createdAt,
+            'editiedAt' : self.editedAt,
+            'userReacted' : userReacted,
+            'sharedPostTxt' : sharedPostTxt,
+            'sharedPostImgId' : sharedPostImg,
+        }
+
+        return dictForm
 
     def __init__(self, pID, text, target, sharedPID=None, imgID=None):
         self.posterID = pID
@@ -67,6 +99,8 @@ class Post(db.Model):
         self.textContent = text
         self.sharedPostID = sharedPID
         self.associatedImageID = imgID
+        self.createdAt = datetime.now()
+        self.editedAt = None
 
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
