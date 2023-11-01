@@ -88,7 +88,11 @@ def makeAccount():
     password = request.json.get('password')
     fName = request.json.get('fName')
     lName = request.json.get('lName')
-    public = request.json.get('public') == 'public'
+    public = request.json.get('public')
+    if public == 'public':
+        public = True
+    else:
+        public = False
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
@@ -408,7 +412,7 @@ def uploadPage():
 def registerPage():
     return render_template('register.html')
 
-@app.route('/home')
+@app.route('/profile')
 @jwt_required()
 def homePage():
     userAccID = get_jwt_identity()
@@ -428,8 +432,8 @@ def homePage():
 
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
 
-    print(postable)
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
+   
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
