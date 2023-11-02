@@ -51,6 +51,17 @@ def canMakeContent(targetAccID, posterID):
 
 
 #ERROR HANDLING
+@app.errorhandler(401)
+def handle401(error):
+    print("INTERUPT")
+    if 'Missing cookie "access_token_cookie"' in str(error):
+        return redirect(url_for('login_route', redirectReason = "You must be signed in to access that page."))  #Was not signed in
+    elif 'Token has expired' in str(error):
+        return redirect(url_for('login_route', redirectReason = "Your token has expired. Please sign in again."))  #Token expired
+    response = jsonify(error=str(error))
+    response.status_code = 401
+    return response
+
 @app.errorhandler(500)
 def handle500(error):
     #most likely we lost DB connection
@@ -125,6 +136,12 @@ def accountLogin():
         return response    
     #Bad info must have been given so we abort
     abort(401)
+
+@app.route('/api/logout')
+def logOut():
+    resp = jsonify({"msg": "Logged out"})
+    unset_access_cookies(resp)
+    return resp
 
 #Friend request sending
 @app.route('/api/makeFriend', methods=['POST'])
@@ -402,7 +419,8 @@ def indexPage():
 
 @app.route('/login')
 def loginPage():
-    return render_template('login.html')
+    redirected = request.args.get('redirectReason')
+    return render_template('login.html', redirectReason=redirected)
 
 @app.route('/upload')
 def uploadPage():

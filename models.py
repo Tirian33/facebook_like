@@ -13,7 +13,7 @@ class Account(db.Model):
     fName = db.Column(db.String(32), nullable=False)
     lName = db.Column(db.String(32), nullable=False)
     isPublic = db.Column(db.Boolean, default=False)
-    friendCode = db.Column(db.String(10), unique=True)
+    friendCode = db.Column(db.String(8), unique=True)
     deletedAt = db.Column(db.DateTime)
     
     def checkPW(self, password):
@@ -43,7 +43,7 @@ class Account(db.Model):
         self.lName = last
         self.isPublic = public
         while True:
-            code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+            code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
             if Account.query.filter_by(friendCode=code).first() is None:
                 self.friendCode = code
                 break
