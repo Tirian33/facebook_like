@@ -467,8 +467,7 @@ def timeline(accID):
     for pst in timeline:
         processedTL.append(pst.process(myAcc.id))
 
-    print(processedTL)
-    return render_template('home.html', account = myAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID)
+    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID)
 
 
 @app.route('/friends')
