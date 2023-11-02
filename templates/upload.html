@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload</title>
+</head>
+<body>
+    <h1>Create a New Post</h1>
+    <form action="/api/post" enctype="multipart/form-data" method="POST">
+
+        <label for="sharedPostID">sharedPostID:</label>
+        <input type="text" id="sharedPostID" name="sharedPostID">
+
+        <label for="PostedOnID">PostedOnID:</label>
+        <input type="text" id="PostedOnID" name="PostedOnID" required>
+
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" rows="6" required></textarea>
+        <input type="file" name="pic" />
+        <input type="submit" value="Post", id="postButton">
+       
+    </form>
+    <!-- <script>
+        document.querySelector('#postButton').addEventListener('click', function () {
+            
+            //Prevent normal unhandled submit
+            event.preventDefault();
+    
+            //Grab the loginForm element
+            var dict = {};
+            var loginData = new FormData(document.querySelector('#loginForm'));
+            loginData.forEach((value, key) => dict[key] = value);
+            
+            //Perform the action of submit button
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(dict), 
+            }).then(function (res){ 
+                if (res.status == 200)
+                {
+                    //JWT should be set so lets go to the home page
+                    window.location.href = '/home';
+                }
+                else
+                {
+                    //Make alert pop up
+                    alert('Incorrect username or password. Please try again.');
+                }
+            }).catch(function(error){
+                //Hopefully we never reach this
+                console.log("ERROR ON LOGIN:", error);
+            })
+        });
+    </script> -->
+</body>
+</html>

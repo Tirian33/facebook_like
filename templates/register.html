@@ -1,64 +1,50 @@
 <div class="container">
-    <form method="POST", action="/login", id="loginForm">
+    <form method="POST", action="api/account", id="createForm">
       <div class="row">
-        <h2 style="text-align:center">Login to X!</h2>
+        <h2 style="text-align:center">Create an X Account</h2>
        
         <div class="col">
-          <div class="hide-md-lg">
-          </div>
-  
+        
+          <input type="fname" name="fname" placeholder="First Name" id="fname" required>
+          <input type="lname" name="lname" placeholder="Last Name" id="lname" required>
           <input type="text" name="username" placeholder="Username" id="username" required>
           <input type="password" name="password" placeholder="Password" id="password" required>
-          <input type="submit" value="Login", id="loginButton">
-
+          <fieldset>
+          <legend>Select a privacy setting:</legend>
+          <div class="group">
+            <label id="public-label" for="one">Public</label>
+            <input id="one" type="radio" name="rating" value="public", checked/>
+            <label id="private-label" for="two">Private</label>
+            <input id="two" type="radio" name="rating" value="public"/>
+         </div>
+         </fieldset>
+          <input type="submit" value="Create Account", id="createButton">
+          
         </div>
-
       </div>
     </form>
+
 </div>
   
   <div class="bottom-container">
     <div class="row">
       <div class="col">
-        <a href="/signup" style="color:white" class="btn">New to Y? Sign up</a>
+        <a href="/login" style="color:white" class="btn">Already have an account? Sign In</a>
       </div>
     </div>
   </div>
-<script>
-    document.querySelector('#loginButton').addEventListener('click', function () {
-        
-        //Prevent normal unhandled submit
-        event.preventDefault();
 
-        //Grab the loginForm element
-        var dict = {};
-        var loginData = new FormData(document.querySelector('#loginForm'));
-        loginData.forEach((value, key) => dict[key] = value);
-        
-        //Perform the action of submit button
-        fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(dict), 
-        }).then(function (res){ 
-            if (res.status == 200)
-            {
-                //JWT should be set so lets go to the home page
-                window.location.href = '/profile';
-            }
-            else
-            {
-                //Make alert pop up
-                alert('Incorrect username or password. Please try again.');
-            }
-        }).catch(function(error){
-            //Hopefully we never reach this
-            console.log("ERROR ON LOGIN:", error);
-        })
-    });
-</script>
+<style>
+    .group {
+        float: center;
+        display: flex;
+        flex-direction: row;
+        padding: 0 90px;
+        text-align: center;
+    }
 
-
+    
+</style>
 <style>
     * {box-sizing: border-box}
 
@@ -93,13 +79,13 @@ input:hover,
 
 /* style the submit button */
 input[type=submit] {
-  background-color: #007BFF;
+  background-color: #04AA6D;
   color: white;
   cursor: pointer;
 }
 
 input[type=submit]:hover {
-  background-color: #0056b3;
+  background-color: #45a049;
 }
 
 /* Two-column layout */

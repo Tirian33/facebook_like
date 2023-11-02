@@ -1,0 +1,659 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="profile.css">
+        <title>{{account['fName']}} {{account['lName']}}'s Profile</title>
+    </head>
+    <body>
+        <div class="profilecard">
+            <div class="infoimages">
+                <img src="static/public/Triangles.png">
+                <img src="static/public/terminator.jpg">
+            </div>
+            <div class="profileinfo">
+                <span>{{account['fName']}} {{account['lName']}}</span>
+                <span>Username: {{account['username']}}</span>
+                <span>Friend Code: {{ account['friendCode'] }}</span>
+            </div>
+            <hr>
+            <div class="followerinfo">
+                <div class="following">
+                    <span>{{friends|length}}</span>
+                    <a href="/friends" style="color:black" class="btn">Friends</a>
+                </div>
+                <div class="vl"></div>
+                <div class="post">
+                    <span>{{timeline|length}}</span>
+                    <a href="/profile" style="color:black" class="btn">Posts</a>
+                </div>
+            </div>
+            <hr>
+        </div>
+    </body>
+
+    &nbsp
+    <body>
+        <div class="profilecard">
+            <form method="POST" action="/api/post" enctype="multipart/form-data" id="postForm">
+                <div class="row">
+                  <h2 style="text-align:center">Create a New Post</h2>
+                  <div class="col">
+                    <div class="hide-md-lg">
+                    </div>
+                    <input type="text" name="textContent" placeholder="What's on your mind?" id="username" required>
+                    <input type="text" id="sharedPostId" name="sharedPostId" value="None" style="display: none;"><br>
+                    <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                    <input type="file" id="actual-btn" name="pic"/>
+                    <input type="submit" value="Create Post", id="loginButton">
+                  </div>
+                </div>
+              </form>
+        </div>
+    </body>
+
+
+    {%for post in timeline %}
+    &nbsp
+    <body>
+        <div class="postcard">
+            <div class="postinfo">
+                <div class="post-header">
+                    <div class="post-profile">
+                        <img src="static/public/terminator.jpg" class="mini-profile">
+                    </div>
+                    <div class="post-header-text">
+                        <div class="post-poster">
+                        <span>{{postable[post.posterID]}}</span>
+                        </div>
+                        {% if post.createdAt %}
+                        <div class="post-datetime">
+                        <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                    {% if (post.posterID == user) or (pageOwner == user) %}
+                    <div>
+                    <form  class="deleteForm", id="{{post.id}}">
+                        <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                        <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
+                        <button class="delete-button" type="submit">
+                            <svg xmlns="static/public/delete-button-svgrepo-com.svg" width="25" height="25" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </form>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="post-content">
+                    <div class="post-text">
+                    <span>{{post.textContent}}</span>
+                    </div>
+                    {% if post.associatedImageID != None %}
+                    <div>
+                        <img src='/api/images/{{post.associatedImageID}}' class="imghandle"/>
+                        <span></span>
+                    </div>
+                    {% endif %}
+                    </div>
+                </div>
+
+            {% if post.replies %}
+                {% for reply in post.replies %}
+                    {% if reply.deletedAt == None %}
+                    <div class="reply">
+                        <div class="reply-header">
+                            <div class="reply-profile">
+                                <img src="static/public/strawberry.jpg" class="mini-profile">
+                            </div>
+                            <div class="reply-header-text">
+                                <div class="reply-poster">
+                                    <span><SPAN STYLE="font-weight:bold">{{ postable[reply.posterID] }}</SPAN> replied:</span>
+                                </div>
+                            </div>
+                        
+                            {% if (reply.posterID == user) or (pageOwner == user)%}
+                            <div>
+                                <form  class="replyDeleteForm", id="{{ reply.id }}">
+                                    <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                                    <input type="text" id="replyID" value= {{reply.id}} name="replyID" style="display: none;">
+                                    <button class="reply-delete-button" type="submit">
+                                        <svg xmlns="static/public/delete-button-svgrepo-com.svg" width="15px" height="15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+                            <div class="reply-content">
+                                <div class="reply-text">
+                                    <span>{{ reply.textContent }}</span>
+                                </div>
+                            </div>  
+                        </div> 
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+          
+            <form method="POST" action="/api/reply" enctype="multipart/form-data" class="commentForm" id = "{{ post.id }}">
+                <div class="row">
+                    <input type="text" name="textContent" placeholder="Reply to this post..." id="username" required>
+                    <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
+                    <input type="submit" value="Reply", id="loginButton">
+                  </div>
+                </div>
+            </form>
+        </div>
+    </body>
+    {% endfor %}
+    
+    <script>
+        var postForm = document.getElementById("postForm");
+        postForm.addEventListener("submit", function(event){
+                event.preventDefault();
+
+                var data = new FormData(postForm);
+
+                fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                    if (res.status == 200){
+                        location.reload();
+                    } else {
+                        console.log(res);
+                        alert('Something went wrong. Please try again.');
+                    }
+                }).catch(err => {
+                    console.error("Error occured.")
+                });
+
+            });
+
+        var commentForms = document.querySelectorAll(".commentForm");
+
+        commentForms.forEach((CommentForm) => {reply_to_post(CommentForm)});
+
+        function reply_to_post(commentForm) {
+        commentForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(commentForm);
+
+            fetch('/api/reply', {method: 'POST', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('Something went wrong. Please try again.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+        var deleteForms = document.querySelectorAll(".deleteForm");
+
+        deleteForms.forEach((deleteForm) => {delete_post(deleteForm)});
+
+        function delete_post(deleteForm) {
+        deleteForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(deleteForm);
+            let path = '/api/post/'
+            
+
+            fetch(path.concat(deleteForm.id), {method: 'DELETE', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('You do not have permission to delete this post.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+        var replyDeleteForms = document.querySelectorAll(".replyDeleteForm");
+
+        replyDeleteForms.forEach((replyDeleteForm) => {delete_reply(replyDeleteForm)});
+
+        function delete_reply(replyDeleteForm) {
+        replyDeleteForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(replyDeleteForm);
+            let path = '/api/reply/'
+            
+
+            fetch(path.concat(replyDeleteForm.id), {method: 'DELETE', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('You do not have permission to delete this reply.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+
+            //functions
+            function getCookie(name) {
+                var value = "; " + document.cookie;
+                var parts = value.split("; " + name + "=");
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            }
+
+
+    </script>
+
+
+    <style>
+        * {box-sizing: border-box}
+    
+    /* style inputs and link buttons */
+    input,
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      margin: 5px 0;
+      opacity: 0.85;
+      display: inline-block;
+      font-size: 17px;
+      line-height: 20px;
+      text-decoration: none; /* remove underline from anchors */
+    }
+    label {
+        background-color: rgb(100, 98, 102);
+        color: white;
+        padding: 0.5rem;
+        font-family: sans-serif;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        margin-top: 1rem;
+        }
+    
+    input:hover,
+    .btn:hover {
+      opacity: 1;
+    }
+    
+    
+    /* style the submit button */
+    input[type=submit] {
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    
+    input[type=submit]:hover {
+      background-color: #0056b3;
+    }
+    
+    /* Two-column layout */
+    .col {
+      float: center;
+      width: 50%;
+      margin: auto;
+      padding: 0 50px;
+      margin-top: 6px;
+    }
+    
+    /* Clear floats after the columns */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+    
+    
+    /* hide some text on medium and large screens */
+    .hide-md-lg {
+      display: none;
+    }
+    
+    /* bottom container */
+    .bottom-container {
+      text-align: center;
+      background-color: #666;
+      border-radius: 0px 0px 4px 4px;
+    }
+    
+    /* Responsive layout - when the screen is less than 650px wide, make the two columns stack on top of each other instead of next to each other */
+    @media screen and (max-width: 650px) {
+      .col {
+        width: 100%;
+        margin-top: 0;
+      }
+      /* hide the vertical line */
+      .vl {
+        display: none;
+      }
+      /* show the hidden text on small screens */
+      .hide-md-lg {
+        display: block;
+        text-align: center;
+      }
+    }
+      </style> 
+<style>
+    body {
+    background-color: rgb(250, 252, 252);
+}
+
+.profilecard {
+    margin: auto;
+    background-color: rgb(232, 232, 231);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-self: center;
+    width: 70%;
+    border-radius: 20px;
+    overflow-x: clip;
+}
+
+.profileinfo {
+    display: flex;
+    font-size: 36;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 7%;
+    
+}
+
+.profileinfo>span:nth-of-type(2) {
+    font-size: 18;
+
+}
+
+.profileinfo>span:nth-of-type(3) {
+    font-size: 18;
+
+}
+
+.post-header {
+ display: flex;
+ align-items: left; 
+ grid-template-columns: 1fr 1fr 1fr;
+ column-gap: 1px;
+ justify-content: left;
+}
+
+.post-poster {
+    font-size: 18;
+    margin-top: 30px;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.post-datetime {
+    font-size: 12;
+    margin-top: 0%;
+    margin-left: 5px;
+}
+
+.post-content {
+    border: 1px solid grey;
+    margin-top: 1%;
+    margin-left: 2%;
+    margin-bottom: 2%;
+    margin-right: 2%;
+    border-radius: 20px;
+}
+
+.post-text {
+    font-size: 18;
+    margin-top: 30px;
+    margin-left: 90px;
+    margin-right: 90px;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.delete-button {
+    position: relative;
+    margin-top: 20px;
+    margin-left: 700px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid rgb(231, 50, 50);
+    background-color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 10px #333;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.delete-button:hover {
+    background-color: rgb(245, 207, 207);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
+
+.reply-delete-button {
+    position: relative;
+    margin-top: 10px;
+    margin-left: 620px;
+    width: 25px;
+    height: 25px;
+    border-radius: 25px;
+    border: 2px solid rgb(231, 50, 50);
+    background-color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 5px #333;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.reply-delete-button:hover {
+    background-color: rgb(245, 207, 207);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
+
+svg {
+    color: rgb(231, 50, 50);
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: .03s;
+}
+.commentForm {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    
+}
+
+.reply-header {
+ display: flex;
+ align-items: left; 
+ grid-template-columns: 1fr 1fr 1fr;
+ column-gap: 1px;
+ justify-content: left;
+}
+
+.reply-poster {
+    font-size: 18;
+    margin-top: 30px;
+    margin-left: 5px;
+}
+
+.reply-datetime {
+    font-size: 12;
+    margin-top: 0%;
+    margin-left: 5px;
+}
+
+.reply-content {
+    margin-left: 2%;
+    margin-bottom: 2%;
+    margin-right: 2%;
+    border-radius: 20px;
+}
+
+.reply-text {
+    font-size: 18;
+    margin-top: 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+}
+
+.reply {
+    display: flex;
+    font-size: 14;
+    flex-direction: column;
+    gap: 1rem;
+    margin-left: 7%;
+    margin-right: 7%;
+    border-radius: 20px;
+    background-color: rgb(253, 252, 252);
+    border: 1px solid grey;
+}
+
+
+.postcard {
+    margin: auto;
+    background-color: rgb(232, 232, 231);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-self: left;
+    width: 70%;
+    border-radius: 20px;
+    overflow-x: clip;
+}
+
+.postinfo {
+    display: flex;
+    font-size: 18;
+    flex-direction: column;
+    justify-content: center;
+  
+    gap: 1rem;
+    margin-top: 3%;
+    margin-left: 3%;
+    margin-right: 3%;
+    border-radius: 20px;
+    background-color: rgb(253, 252, 252);
+}
+
+.profileinfo>span:nth-of-type(1) {
+    font-weight: bold;
+
+}
+
+.followerinfo {
+    display: flex;
+    gap: 3rem;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.following {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.following>span:nth-of-type(1) {
+    font-weight: bold;
+    font-size: large;
+}
+
+.follower {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.follower>span:nth-of-type(1) {
+    font-weight: bold;
+    font-size: large;
+}
+
+.post {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.post>span:nth-of-type(1) {
+    font-weight: bold;
+    font-size: large;
+}
+
+.vl {
+    height: 60px;
+    border: 1px solid grey;
+}
+
+hr {
+    border: 1px solid grey;
+    width: 500px;
+}
+
+.infoimages {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.infoimages>img:nth-of-type(1) {
+    width: 100%;
+    height: 250px;
+}
+
+.infoimages>img:nth-of-type(2) {
+    width: 20%;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -3rem;
+}
+
+.mini-profile {
+    border: 2px solid #555;
+    display: flex;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-top: 15px;
+    margin-left: 15px;
+    position: left;
+   
+}
+
+.imghandle {
+    border: 2px solid #a0a0a0;
+    height: 400px;
+    width: 80%;
+    border-radius: 20px;
+    margin-left: 10%;
+    margin-bottom: 5%;
+
+}
+</style>
+</html>

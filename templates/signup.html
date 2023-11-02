@@ -37,6 +37,7 @@
                 <input type="submit" value="Create Account" id="confButton">
             </div>
         </form>
+        
         <script>
             document.querySelector('#confButton').addEventListener('click', function () {
                 //Prevent normal unhandled submit
@@ -64,7 +65,7 @@
                     if (res.status == 200)
                     {
                         //JWT should be set so lets go to the home page
-                        window.location.href = '/home';
+                        window.location.href = '/profile';
                     }
                     else
                     {
@@ -78,5 +79,73 @@
             }});
         </script>
     </div>
+    <div class="bottom-container">
+        <div class="row">
+          <div class="col">
+            <a href="/login" style="color:black" class="btn">Already have an account? Sign In</a>
+          </div>
+        </div>
+    </div>
 </body>
 </html>
+
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+}
+
+
+.container {
+    width: 300px;
+    margin: 0 auto;
+    background: no-repeat;
+    padding: 20px;
+    margin-top: 50px;
+    border-radius: 5px;
+    
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 5px;
+}
+
+#confButton {
+    width: 100%;
+    background: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#confButton:hover {
+    background: #0056b3;
+}
+</style>

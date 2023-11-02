@@ -1,83 +1,389 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Facebook-Like Page</title>
-    <link rel="stylesheet" href="friends.css">
 </head>
 <body>
     <header class="cover-photo">
-        <img src="cover.jpg" alt="Cover Photo">
+       
     </header>
     <div class="profile-container">
-        <img class="profile-picture" src="profile.jpg" alt="Profile Picture">
-        <h1 class="profile-name">Your Name</h1>
-        <p class="profile-bio">Write something about yourself.</p>
-        <input type="text" id="bio-input" placeholder="Update your bio...">
-
+        <!--profile container  -->
+        <h1 class="profile-name">{{account.username}}</h1>
     </div>
     <div class="content-container">
-    <div class="friends-container">
-        <h2 class="friends-header">Friends</h2>
-        <ul class="friends-list">
-            <li>
-                <img src="friend1.jpg" alt="Friend 1">
-                <p>Friend 1</p>
-                <div class="friend-buttons">
-                <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                </div>
-            </li>
-            <li>
-                <img src="friend2.jpg" alt="Friend 2">
-                <p>Friend 2</p>
-                <div class="friend-buttons">
-                <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                </div>    
-            </li>
-      <li>
-                <img src="friend1.jpg" alt="Friend 3">
-                <p>Friend 3</p>
-                <div class="friend-buttons">
-             <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
+        <div class="friends-container">
+            <h2 class="friends-header">Friends</h2>
+            <ul class="friends-list">
+                {% for friend in friends %}
+                <li>
+                    <img src="static/public/profile.png" alt="">
+                    <p>{{friend.username}}</p>
+                    <div class="friend-buttons">
+                        <a href="/timeline/{{friend.id}}">
+                        <button class="message-button">View Page</button>
+                        </a>
+                        <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Unfriend</button>
                     </div>
-            </li>
-            <li>
-                <img src="friend2.jpg" alt="Friend 4">
-                <p>Friend 4</p>
-                <div class="friend-buttons">
-                <button class="message-button">Message</button>
-                    <button class="unfriend-button">Unfriend</button>
-                </div>    
-            </li>
-            <!-- Add more friends as needed -->
-        </ul>
+                </li>
+                {% endfor %}
+                <!-- Add more friends as needed -->
+            </ul>
+        </div>
+        <div class="pending-requests-container">
+            <h2 class="pending-requests-header">Send Friend Request</h2>
+            <form method="POST", action="/api/makeFriend", id="newFriendForm">
+                <input type="text" id="friendCode" name="friendCode" placeholder="Enter friend code...">
+                <button class="message-button" id="send-friend-request-button">submit</button>
+                <label for="UserCode" style="left:150px;">     Your code: {{account.id}}</label>
+            </form>
+            <h2 class="pending-requests-header">Pending Requests</h2>
+            <ul class="pending-requests-list">
+                {% for pending in pending %}
+                <li>
+                    <img src="static/public/profile.png" alt="">
+                    <p>{{pending.username}}</p>
+                    <div class="request-buttons">
+                        <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
+                        <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Decline</button>
+                    </div>
+                </li>
+                {% endfor %}
+                <!-- Add more pending requests as needed -->
+            </ul>
+        </div>
     </div>
-    <div class="pending-requests-container">
-        <h2 class="pending-requests-header">Pending Requests</h2>
-        <ul class="pending-requests-list">
-            <li>
-                <img src="request1.jpg" alt="Request 1">
-                <p>Request 1</p>
-                <div class="request-buttons">
-                    <button class="accept-request-button">Accept</button>
-                    <button class="decline-request-button">Decline</button>
-                </div>
-            </li>
-            <li>
-                <img src="request2.jpg" alt="Request 2">
-                <p>Request 2</p>
-                <div class="request-buttons">
-                    <button class="accept-request-button">Accept</button>
-                    <button class="decline-request-button">Decline</button>
-                </div>
-            </li>
-            <!-- Add more pending requests as needed -->
-        </ul>
+  
+    <!-- Message Pop-up -->
+    <div id="message-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-message-popup">&times;</span>
+            <h2>Send a Message to <span id="message-popup-username"></span></h2>
+            <textarea id="message-text" placeholder="Type your message here..."style="width: 305px; height: 112px;"></textarea>
+            <button id="send-message-button">Send</button>
+        </div>
     </div>
-  </div>
+
+    <!-- Unfriend Pop-up -->
+    <div id="unfriend-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-unfriend-popup">&times;</span>
+            <h2>Unfriend <span id="unfriend-popup-username"></span></h2>
+            <p>Are you sure you want to unfriend this person?</p>
+            <button id="unfriend-popup-confirm">Unfriend</button>
+        </div>
+    </div>
+
+    <!-- Accept Pop-up -->
+    <div id="accept-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-accept-popup">&times;</span>
+            <h2>Accept Friend Request from <span id="accept-popup-username"></span></h2>
+            <p>Are you sure you want to accept this friend request?</p>
+            <button id="accept-popup-confirm">Accept</button>
+        </div>
+    </div>
+
+    <!-- Decline Pop-up -->
+    <div id="decline-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-decline-popup">&times;</span>
+            <h2>Decline Friend Request from <span id="decline-popup-username"></span></h2>
+            <p>Are you sure you want to decline this friend request?</p>
+            <button id="decline-popup-confirm">Decline</button>
+        </div>
+    </div>
+
+    <!-- Your script tag for JavaScript -->
+    <script>
+        //Friend Request Maker
+        var friendForm = document.getElementById("newFriendForm");
+        friendForm.addEventListener("submit", function(event){
+                event.preventDefault();
+
+                var dict = {};
+                var data = new FormData(friendForm);
+                data.forEach((value, key) => dict[key] = value);
+
+                fetch('/api/makeFriend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(dict), 
+                }).then(function (res){ 
+                    if (res.status == 200)
+                    {
+                        alert('Friend Request sent!');
+                    }
+                    else
+                    {
+                        //Make alert pop up
+                        alert('Unable to find that user.');
+                    }
+                }).catch(function(error){
+                    //Hopefully we never reach this
+                    console.log("ERROR ON FRIEND:", error);
+                });
+
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button");
+            const closePopupButtons = document.querySelectorAll(".close");
+            const popups = document.querySelectorAll(".popup");
+
+            openPopupButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const popupId = button.getAttribute("data-popup-id");
+                    const popup = document.getElementById(popupId);
+                    popup.style.display = "flex";
+                    console.log("Clicked a " + popupId + " button.");
+
+                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
+                        const friendId = button.getAttribute("data-friend-id");
+                        const friendName = button.parentElement.previousElementSibling.innerText;
+                        const friendCode = button.getAttribute("data-friend-code");
+                        const popupUsername = document.getElementById(`${popupId}-username`);
+                        popupUsername.textContent = friendName;
+                        const popupBTN = document.getElementById(`${popupId}-confirm`);
+
+                        popupBTN.addEventListener("click", () => {
+                            //action should call removeFriend
+                            console.log("Triggered");
+                            if (popupId === "unfriend-popup") {
+                                fetch('/api/removeFriend', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend removed successfully.');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to remove friend.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON REMOVE FRIEND:", error);
+                                    });
+                            } else if (popupId === "decline-popup") {
+                                //action should call makeFriend
+                                fetch('/api/declineFriend', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend request rejected!');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to reject friend request.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON ACCEPT FRIEND REQUEST:", error);
+                                    });
+                            } else if (popupId === "accept-popup") {
+                                //action should call makeFriend
+                                fetch('/api/makeFriend', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend request accepted!');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to accept friend request.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON ACCEPT FRIEND REQUEST:", error);
+                                    });
+                            }
+                            //Popup needs to close
+                            popup.style.display = "none";
+                        })
+                        
+                    }
+                });
+            });
+
+            closePopupButtons.forEach(closeButton => {
+                closeButton.addEventListener("click", () => {
+                    popups.forEach(popup => {
+                        popup.style.display = "none";
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>
+
+
+
+<style>
+.content-container {
+    display: flex;
+    justify-content: space-between;
+}
+.friends-container {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+
+.friends-header {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+
+.friends-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.friends-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+.friends-list img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.friends-list p {
+    font-size: 16px;
+}
+
+.friend-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.message-button,
+.unfriend-button {
+    padding: 5px 10px;
+    background-color: #1877f2; /* Facebook blue */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+.message-button:hover,
+.unfriend-button:hover {
+    background-color: #1659a3; /* Darker blue on hover */
+}
+
+
+.pending-requests-container {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.pending-requests-header {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.pending-requests-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.pending-requests-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+.pending-requests-list img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.pending-requests-list p {
+    font-size: 16px;
+}
+
+.request-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.accept-request-button, .decline-request-button {
+    padding: 5px 10px;
+    background-color: #4caf50;  /* Green for Accept */
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.decline-request-button {
+    background-color: #f44336; /* Red for Decline */
+    margin-left: 10px;
+}
+
+.accept-request-button:hover, .decline-request-button:hover {
+    filter: brightness(0.8);
+}
+
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 999; /* Ensure it's on top of other elements */
+}
+
+.popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+</style>
