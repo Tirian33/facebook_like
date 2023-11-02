@@ -433,7 +433,7 @@ def homePage():
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
 
    
-    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID)
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
@@ -467,7 +467,7 @@ def timeline(accID):
     for pst in timeline:
         processedTL.append(pst.process(myAcc.id))
 
-    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID)
+    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity())
 
 
 @app.route('/friends')
