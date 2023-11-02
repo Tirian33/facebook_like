@@ -259,7 +259,6 @@ def makePost():
 @jwt_required()
 def deletePost(postID):
     requesterID = get_jwt_identity()
-    
     targetPost = Post.query.filter_by(id=postID).first()
     if targetPost is None:
         abort(400) #Request made was bad

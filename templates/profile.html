@@ -65,8 +65,19 @@
                         <span>{{postable[post.posterID]}}</span>
                         </div>
                         <div class="post-datetime">
-                        <span> {{ post.createdAt.strftime('%b. %d %Y at %I:%M %p') }}</span>
+                        <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
                         </div>
+                    </div>
+                    <div>
+                    <form  class="deleteForm", id="{{post.id}}">
+                        <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                        <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
+                        <button class="delete-button" type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </form>
                     </div>
                 </div>
                 <div class="post-content">
@@ -159,7 +170,32 @@
 
         });}
 
+        var deleteForms = document.querySelectorAll(".deleteForm");
 
+        deleteForms.forEach((deleteForm) => {delete_post(deleteForm)});
+
+        function delete_post(deleteForm) {
+        deleteForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(deleteForm);
+            let path = '/api/post/'
+            
+
+            fetch(path.concat(deleteForm.id), {method: 'DELETE', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('Something went wrong. Please try again.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
 
             //functions
             function getCookie(name) {
@@ -190,7 +226,7 @@
       text-decoration: none; /* remove underline from anchors */
     }
     label {
-        background-color: indigo;
+        background-color: rgb(100, 98, 102);
         color: white;
         padding: 0.5rem;
         font-family: sans-serif;
@@ -335,10 +371,31 @@
     margin-top: 30px;
     margin-left: 90px;
     margin-right: 90px;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     font-weight: bold;
 }
 
+.delete-button {
+    position: relative;
+    margin-top: 20px;
+    margin-left: 700px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid rgb(231, 50, 50);
+    background-color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 10px #333;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.delete-button:hover {
+    background-color: rgb(245, 207, 207);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
 
 .commentForm {
     display: flex;
@@ -536,7 +593,4 @@ hr {
 
 }
 </style>
-
-
-
-    </html>
+</html>
