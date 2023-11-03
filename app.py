@@ -51,6 +51,17 @@ def canMakeContent(targetAccID, posterID):
 
 
 #ERROR HANDLING
+@app.errorhandler(401)
+def handle401(error):
+    print("INTERUPT")
+    if 'Missing cookie "access_token_cookie"' in str(error):
+        return redirect(url_for('login_route', redirectReason = "You must be signed in to access that page."))  #Was not signed in
+    elif 'Token has expired' in str(error):
+        return redirect(url_for('login_route', redirectReason = "Your token has expired. Please sign in again."))  #Token expired
+    response = jsonify(error=str(error))
+    response.status_code = 401
+    return response
+
 @app.errorhandler(500)
 def handle500(error):
     #most likely we lost DB connection
@@ -88,11 +99,7 @@ def makeAccount():
     password = request.json.get('password')
     fName = request.json.get('fName')
     lName = request.json.get('lName')
-    public = request.json.get('public')
-    if public == 'public':
-        public = True
-    else:
-        public = False
+    public = request.json.get('public') == 'public'
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
@@ -125,6 +132,12 @@ def accountLogin():
         return response    
     #Bad info must have been given so we abort
     abort(401)
+
+@app.route('/api/logout')
+def logOut():
+    resp = jsonify({"msg": "Logged out"})
+    unset_access_cookies(resp)
+    return resp
 
 #Friend request sending
 @app.route('/api/makeFriend', methods=['POST'])
@@ -263,6 +276,22 @@ def makePost():
     
     return "OK", 200 #returning "OK"
 
+@app.route('/api/post/edit/<int:postId>', methods=['POST'])
+@jwt_required()
+def editPost(postId):
+    if (request.form.get('textContent') is None):
+        abort(400, "Invalid request recieved.")
+
+    targetPost = Post.query.filter_by(id=postId, deletedAt = None, posterID = get_jwt_identity()).first()
+
+    if (targetPost is None):
+        abort(404, "Unable to find that post")
+
+    targetPost.textContent = request.form.get('textContent')
+    db.session.commit()
+    
+    return "OK", 200 #returning "OK"
+
 @app.route('/api/post/<int:postID>', methods=['DELETE'])
 @jwt_required()
 def deletePost(postID):
@@ -393,6 +422,50 @@ def uploadImage():
 
     return "Image successfully uploaded" , 200
 
+@app.route('/api/settings', methods=['POST'])
+@jwt_required()
+def settingsUpdate():
+    targetAcc = Account.query.filter_by(id=get_jwt_identity()).first()
+
+    targetAcc.isPublic = request.form.get('textContent') == 'public'
+
+    #START
+    if len(request.files.getlist('profileImage')) == 1 and request.files['profileImage'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        pic = request.files['profileImage']
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
+        
+        # Store the image object
+        db.session.add(img)
+        db.session.commit()
+
+        # Get the image id
+        img_id = img.id
+
+        targetAcc.profileImageID = img_id 
+    
+    if len(request.files.getlist('coverImage')) == 1 and request.files['coverImage'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        pic = request.files['coverImage']
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
+        
+        # Store the image object
+        db.session.add(img)
+        db.session.commit()
+
+        # Get the image id
+        img_id = img.id
+        
+        targetAcc.coverImageID = img_id 
+
+    db.session.commit()
+
+    return "OK", 200
+
 # Display the image
 @app.route('/api/images/<int:id>')
 def get_img(id):
@@ -410,7 +483,8 @@ def indexPage():
 
 @app.route('/login')
 def loginPage():
-    return render_template('login.html')
+    redirected = request.args.get('redirectReason')
+    return render_template('login.html', redirectReason=redirected)
 
 @app.route('/upload')
 def uploadPage():
@@ -500,6 +574,12 @@ def friendPage():
 @app.route('/signup')
 def signUpPage():
     return render_template('signup.html')
+
+@app.route('/settings')
+@jwt_required()
+def settingsPage():
+    acc = Account.query.filter_by(id=get_jwt_identity()).first()
+    return render_template('settings.html', account = acc.toDict())
 
 
 #Teardown (don't mess with this)

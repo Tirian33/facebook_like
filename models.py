@@ -12,8 +12,10 @@ class Account(db.Model):
     passwordHash = db.Column(db.String(128))
     fName = db.Column(db.String(32), nullable=False)
     lName = db.Column(db.String(32), nullable=False)
+    profileImageID = db.Column(db.Integer, nullable=True)
+    coverImageID = db.Column(db.Integer, nullable=True)
     isPublic = db.Column(db.Boolean, default=False)
-    friendCode = db.Column(db.String(10), unique=True)
+    friendCode = db.Column(db.String(8), unique=True)
     deletedAt = db.Column(db.DateTime)
     
     def checkPW(self, password):
@@ -27,6 +29,8 @@ class Account(db.Model):
             'lName' : self.lName,
             'isPublic' : self.isPublic,
             'friendCode' : self.friendCode,
+            'profileImageID': self.profileImageID,
+            'coverImageID': self.coverImageID
         }
         return dictForm
     
@@ -43,7 +47,7 @@ class Account(db.Model):
         self.lName = last
         self.isPublic = public
         while True:
-            code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+            code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
             if Account.query.filter_by(friendCode=code).first() is None:
                 self.friendCode = code
                 break
@@ -107,11 +111,16 @@ class Reply(db.Model):
     respondingTo = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     posterID = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     textContent = db.Column(db.String(400)) #We are limiting charcter count to 400 characters.
+    createdAt = db.Column(db.DateTime)
+    editedAt = db.Column(db.DateTime)
     deletedAt = db.Column(db.DateTime)
+
     def __init__(self, resToID, pID, text):
         self.respondingTo = resToID
         self.posterID = pID
         self.textContent = text
+        self.createdAt = datetime.now()
+        self.editedAt = None
 
 class Reaction(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

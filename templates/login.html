@@ -1,3 +1,9 @@
+{% if redirectReason %}
+<div>
+  {{redirectReason}}
+</div>
+{% endif %}
+
 <div class="container">
     <form method="POST", action="/login", id="loginForm">
       <div class="row">
