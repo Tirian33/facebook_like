@@ -132,8 +132,8 @@ def accountLogin():
 def sendFriendRequest():
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of requested friend.")
-    elif len(request.json.get('friendCode')) != 8:
-        abort(400, "Friend Code is 8 characters.")
+    # elif len(request.json.get('friendCode')) != 8:
+    #     abort(400, "Friend Code is 8 characters.")
 
     targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
    
@@ -231,20 +231,28 @@ def makePost():
    
     # If there is only one image attachment...
     if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
+
+        
         # Retrieve the image object
         pic = request.files['pic']
-        filename = secure_filename(pic.filename)
-        mimetype = pic.mimetype
-        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
         
-        # Store the image object
-        db.session.add(img)
-        db.session.commit()
+        filename = secure_filename(pic.filename)
+        image = pic.read()
+        if len(image) < 40000:
 
-        # Get the image id
-        img_id = img.id
+            mimetype = pic.mimetype
+            img = Img(img=image, mimetype=mimetype, name=filename)
+            
+            # Store the image object
+            db.session.add(img)
+            db.session.commit()
 
-        newPost.associatedImageID = img_id
+            # Get the image id
+            img_id = img.id
+
+            newPost.associatedImageID = img_id
+        else:
+            abort(400, "Maximum image file size is 40 KB.")
 
     # If there are multiple image attachments, error out.
     elif len(request.files.getlist('pic')) > 1:
