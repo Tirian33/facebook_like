@@ -105,6 +105,7 @@ def makeAccount():
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
 
+    # If an profile image is uploaded....
     if len(request.files.getlist('profile-pic')) == 1 and request.files['profile-pic'].mimetype != 'application/octet-stream':
         # Retrieve the image object
         profile_pic = request.files['profile-pic']
