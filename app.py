@@ -272,6 +272,22 @@ def makePost():
     
     return "OK", 200 #returning "OK"
 
+@app.route('/api/post/edit/<int:postId>', methods=['POST'])
+@jwt_required()
+def editPost(postId):
+    if (request.form.get('textContent') is None):
+        abort(400, "Invalid request recieved.")
+
+    targetPost = Post.query.filter_by(id=postId, deletedAt = None, posterID = get_jwt_identity()).first()
+
+    if (targetPost is None):
+        abort(404, "Unable to find that post")
+
+    targetPost.textContent = request.form.get('textContent')
+    db.session.commit()
+    
+    return "OK", 200 #returning "OK"
+
 @app.route('/api/post/<int:postID>', methods=['DELETE'])
 @jwt_required()
 def deletePost(postID):
