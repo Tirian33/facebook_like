@@ -6,8 +6,16 @@
     <body>
         <div class="profilecard">
             <div class="infoimages">
-                <img src="static/public/Triangles.png">
-                <img src="static/public/terminator.jpg">
+                {% if account.coverImageID != None %}
+                        <img src='/api/images/{{account.coverImageID}}'/>
+                {% else %}
+                        <img src="static/public/Triangles.png">
+                {% endif %}
+                {% if account.profileImageID != None %}
+                        <img src='/api/images/{{account.profileImageID}}'/>
+                {% else %}
+                        <img src="static/public/terminator.jpg">    
+                {% endif %}
             </div>
             <div class="profileinfo">
                 <span>{{account['fName']}} {{account['lName']}}</span>
@@ -136,6 +144,11 @@
                                 <div class="reply-poster">
                                     <span><SPAN STYLE="font-weight:bold">{{ postable[reply.posterID] }}</SPAN> replied:</span>
                                 </div>
+                                {% if post.createdAt %}
+                                <div class="reply-datetime">
+                                    <span> {{ reply.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                                </div>
+                                {% endif %}
                             </div>
                         
                             {% if (reply.posterID == user) or (pageOwner == user)%}
@@ -685,7 +698,7 @@ hr {
 }
 
 .infoimages>img:nth-of-type(2) {
-    width: 20%;
+    width: 200px;
     border-radius: 50%;
     position: absolute;
     bottom: -3rem;

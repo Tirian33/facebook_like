@@ -7,7 +7,7 @@
 <body>
     <div class="container">
         <h2>Sign Up</h2>
-        <form action="/api/account" method="post" id="regiForm">
+        <form action="/api/account" enctype="multipart/form-data" method="post" id="regiForm">
             <div class="form-group">
                 <label for="fName">First Name:</label>
                 <input type="text" id="fName" name="fName" required>
@@ -32,6 +32,14 @@
                 <input type="checkbox" id="public" name="public" value="public">
                 <label for="publicview"> Do you want your page to be Public</label><br>    
             </div>
+            <div class="form-group">
+                <input type="file" id="profile-pic-btn" name="profile-pic" hidden/>
+                <label class="pic-btn" for="profile-pic-btn">Add a Profile Photo</label>
+            </div>
+            <div class="form-group">
+                <input type="file" id="cover-pic-btn" name="cover-pic" hidden/>
+                <label class="pic-btn" for="cover-pic-btn">Add a Cover Photo</label>
+            </div>
             
             <div class="form-group">
                 <input type="submit" value="Create Account" id="confButton">
@@ -55,12 +63,11 @@
                 //Grab the loginForm element
                 var dict = {};
                 var loginData = new FormData(document.querySelector('#regiForm'));
-                loginData.forEach((value, key) => dict[key] = value);
+                
                 //Perform the action of submit button
                 fetch('/api/account', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json',},
-                    body: JSON.stringify(dict), 
+                    body: loginData, 
                 }).then(function (res){ 
                     if (res.status == 200)
                     {
@@ -96,6 +103,14 @@
     text-align: center;
 }
 
+.pic-btn {
+  background-color: rgb(26, 0, 130);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
 
 .container {
     width: 300px;

@@ -95,19 +95,65 @@ def refreshJWT(response):
 #Account creation at default request
 @app.route('/api/account', methods=['POST'])
 def makeAccount():
-    username = request.json.get('username')
-    password = request.json.get('password')
-    fName = request.json.get('fName')
-    lName = request.json.get('lName')
-    public = request.json.get('public') == 'public'
+    username = request.form.get('username')
+    password = request.form.get('password')
+    fName = request.form.get('fName')
+    lName = request.form.get('lName')
+    public = request.form.get('public') == 'public'
+
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
+
+    if len(request.files.getlist('profile-pic')) == 1 and request.files['profile-pic'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        profile_pic = request.files['profile-pic']
+        filename = secure_filename(profile_pic.filename)
+        image = profile_pic.read()
+        if len(image) < 60000:
+
+            mimetype = profile_pic.mimetype
+            img = Img(img=image, mimetype=mimetype, name=filename)
+            
+            # Store the image object
+            db.session.add(img)
+            db.session.commit()
+
+            # Get the image id
+            img_id = img.id
+
+            acnt.profileImageID = img_id
+        else:
+            abort(400, "Maximum image file size is 40 KB.")
+
+    if len(request.files.getlist('cover-pic')) == 1 and request.files['cover-pic'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        cover_pic = request.files['cover-pic']
+        
+        filename = secure_filename(cover_pic.filename)
+        image = cover_pic.read()
+        if len(image) < 60000:
+
+            mimetype = cover_pic.mimetype
+            img = Img(img=image, mimetype=mimetype, name=filename)
+            
+            # Store the image object
+            db.session.add(img)
+            db.session.commit()
+
+            # Get the image id
+            img_id = img.id
+
+            acnt.coverImageID = img_id
+        else:
+            abort(400, "Maximum image file size is 40 KB.")
+    
     db.session.add(acnt)
     db.session.commit()
     accountToken = create_access_token(identity=acnt.id, expires_delta=timedelta(minutes=10))
     response = jsonify({"msg": "login is valid for accountID " + str(acnt.id)})
     set_access_cookies(response, accountToken)
+    
     return response
 
 @app.route('/api/account/<int:id>')
@@ -251,7 +297,7 @@ def makePost():
         
         filename = secure_filename(pic.filename)
         image = pic.read()
-        if len(image) < 40000:
+        if len(image) < 60000:
 
             mimetype = pic.mimetype
             img = Img(img=image, mimetype=mimetype, name=filename)
