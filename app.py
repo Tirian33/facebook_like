@@ -99,11 +99,7 @@ def makeAccount():
     password = request.json.get('password')
     fName = request.json.get('fName')
     lName = request.json.get('lName')
-    public = request.json.get('public')
-    if public == 'public':
-        public = True
-    else:
-        public = False
+    public = request.json.get('public') == 'public'
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
@@ -418,6 +414,50 @@ def uploadImage():
 
     return "Image successfully uploaded" , 200
 
+@app.route('/api/settings', methods=['POST'])
+@jwt_required()
+def settingsUpdate():
+    targetAcc = Account.query.filter_by(id=get_jwt_identity()).first()
+
+    targetAcc.isPublic = request.form.get('textContent') == 'public'
+
+    #START
+    if len(request.files.getlist('profileImage')) == 1 and request.files['profileImage'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        pic = request.files['profileImage']
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
+        
+        # Store the image object
+        db.session.add(img)
+        db.session.commit()
+
+        # Get the image id
+        img_id = img.id
+
+        targetAcc.profileImageID = img_id 
+    
+    if len(request.files.getlist('coverImage')) == 1 and request.files['coverImage'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        pic = request.files['coverImage']
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
+        
+        # Store the image object
+        db.session.add(img)
+        db.session.commit()
+
+        # Get the image id
+        img_id = img.id
+        
+        targetAcc.coverImageID = img_id 
+
+    db.session.commit()
+
+    return "OK", 200
+
 # Display the image
 @app.route('/api/images/<int:id>')
 def get_img(id):
@@ -526,6 +566,12 @@ def friendPage():
 @app.route('/signup')
 def signUpPage():
     return render_template('signup.html')
+
+@app.route('/settings')
+@jwt_required()
+def settingsPage():
+    acc = Account.query.filter_by(id=get_jwt_identity()).first()
+    return render_template('settings.html', account = acc.toDict())
 
 
 #Teardown (don't mess with this)
