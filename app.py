@@ -259,7 +259,6 @@ def makePost():
 @jwt_required()
 def deletePost(postID):
     requesterID = get_jwt_identity()
-    
     targetPost = Post.query.filter_by(id=postID).first()
     if targetPost is None:
         abort(400) #Request made was bad
@@ -278,10 +277,11 @@ def deletePost(postID):
 @app.route('/api/reply', methods=['POST'])
 @jwt_required()
 def makeReply():
-    if (request.json.get('textContent') is None or request.json.get('respTo') is None):
+
+    if (request.form.get('textContent') is None or request.form.get('respTo') is None):
         abort(400, "Invalid request recieved.")
 
-    targetPost = Post.query.fitler_by(id = request.json.get('respTo'), deletedAt = None).first()
+    targetPost = Post.query.filter_by(id = request.form.get('respTo'), deletedAt = None).first()
     if targetPost is None:
         abort(400, "The post you are trying to respond to has been deleted.")
 
@@ -289,17 +289,17 @@ def makeReply():
     if targetAccount is None:
         abort(400, "The post you are trying to respond to has been deleted.")
     
-    permission = canMakeContent(request.json.get('respTo'), get_jwt_identity())
+    permission = canMakeContent(targetAccount.id, get_jwt_identity())
     if permission == 2:
         abort(400, "You do not have permission to reply right now.")
     elif permission == 3:
         abort(400, "You are not friends. You cannot reply.")
     
 
-    newReply = Reply(request.json.get('respTo'), get_jwt_identity(), request.json.get('textContent'))
+    newReply = Reply(request.form.get('respTo'), get_jwt_identity(), request.form.get('textContent'))
     db.session.add(newReply)
     db.session.commit()
-    return "OK", 200 #returning "OK"
+    return "Okay", 200
 
 @app.route('/api/reply/<int:replyID>', methods=['DELETE'])
 @jwt_required()
@@ -327,7 +327,7 @@ def makeReaction():
     if (request.json.get('reactionType') is None or request.json.get('respTo') is None):
         abort(400, "Invalid request recieved.")
 
-    targetPost = Post.query.fitler_by(id = request.json.get('respTo'), deletedAt = None).first()
+    targetPost = Post.query.filter_by(id = request.json.get('respTo'), deletedAt = None).first()
     if targetPost is None:
         abort(400, "The post you are trying to react to has been deleted.")
     
@@ -431,12 +431,9 @@ def homePage():
         postable.update(friend.toPostData())
 
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
-    processedTL = []
-    for pst in timeline:
-        processedTL.append(pst.process(acc.id))
 
-    print(processedTL)
-    return render_template('home.html', account = acc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=userAccID)
+   
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
@@ -470,8 +467,7 @@ def timeline(accID):
     for pst in timeline:
         processedTL.append(pst.process(myAcc.id))
 
-    print(processedTL)
-    return render_template('home.html', account = myAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID)
+    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity())
 
 
 @app.route('/friends')
