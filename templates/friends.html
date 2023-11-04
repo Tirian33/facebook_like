@@ -6,6 +6,21 @@
     <header class="cover-photo">
        
     </header>
+     <!-- User Account Dropdown -->
+     <div class="user-account">
+        <div class="user-avatar">
+            <img src="static/public/strawberry.jpg" alt="">
+        </div>
+        <div class="user-dropdown">
+            <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
+            <div class="user-dropdown-content" id="user-dropdown-content">
+                <a href="#">Profile</a>
+                <a href="#">Settings</a>
+                <a href="/login">Logout</a>
+            </div>
+        </div>
+    </div>
+
     <div class="profile-container">
         <!--profile container  -->
         <h1 class="profile-name">{{account.username}}</h1>
@@ -130,13 +145,28 @@
             const closePopupButtons = document.querySelectorAll(".close");
             const popups = document.querySelectorAll(".popup");
 
+                                // User Account Dropdown
+            const userDropdownButton = document.getElementById("user-dropdown-button");
+            const userDropdownContent = document.getElementById("user-dropdown-content");
+
+            userDropdownButton.addEventListener("click", () => {
+                userDropdownContent.classList.toggle("show");
+            });
+
+            // Close the dropdown if the user clicks outside of it
+            window.addEventListener("click", (event) => {
+                if (event.target !== userDropdownButton) {
+                    userDropdownContent.classList.remove("show");
+                }
+            });
+
             openPopupButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const popupId = button.getAttribute("data-popup-id");
                     const popup = document.getElementById(popupId);
                     popup.style.display = "flex";
                     console.log("Clicked a " + popupId + " button.");
-
+           
                     if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
                         const friendId = button.getAttribute("data-friend-id");
                         const friendName = button.parentElement.previousElementSibling.innerText;
@@ -384,6 +414,63 @@
     right: 10px;
     font-size: 20px;
     cursor: pointer;
+}
+.user-account {
+    display: flex;
+    align-items: center;
+    margin-right: 30px;
+    position: relative;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-dropdown {
+    position: relative;
+}
+
+.user-dropdown-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    margin-right: 30px;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 10;
+}
+
+.user-dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.user-dropdown-content a:hover {
+    background-color: #f2f2f2;
+}
+
+.show {
+    display: block;
 }
 
 </style>
