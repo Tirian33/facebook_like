@@ -687,7 +687,13 @@ def timeline(accID):
     for pst in timeline:
         processedTL.append(pst.process(myAcc.id))
 
-    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity())
+    likedPosts = []
+    for post in timeline:
+        for reaction in post.reactions:
+            if reaction.posterID == get_jwt_identity():
+                likedPosts.append(post.id)
+
+    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity(), likedPosts=likedPosts)
 
 
 @app.route('/friends')
