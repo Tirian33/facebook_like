@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1, width=device-width" />
-    <link rel="stylesheet" href="static/global.css" />
-    <link rel="stylesheet" href="templates/home.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" />
-</head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="static/global.css">
+    <link rel="stylesheet" href="templates/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+    <title>Welcome to Y</title></head>
 
 <body>
     
@@ -156,33 +156,8 @@
 </html>
 
 <style>
-/* Popup modal */
-.modal {
-            display:none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
 
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 50%;
-            text-align: center;
-        }
-
-        /* Close button is picky */
-        .close {
-            color: #555;
-            float: right;
-            font-size: 20px;
-            cursor: pointer;
-        }
+       
 
 .create_post_button {
     position: absolute;
@@ -288,26 +263,52 @@
     cursor: pointer;
 }
 
+
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    text-align: center;
+}
+
+/* Close button is picky */
+.close {
+    color: #555;
+    float: right;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+
+.homepage {
+    background-color: #f0f0f0; /* Light gray background */
+    margin: 20px; /* Add margins to the sides */
+    text-align: center;
+}
+
 .logo {
     position: absolute;
-    top: 0;
-    left: 4px;
+    top: 50%; /* Vertically center the logo */
+    left: 50%; /* Horizontally center the logo */
+    transform: translate(-50%, -50%); /* Center the logo */
     width: 216px;
     height: 223px;
     object-fit: cover;
     mix-blend-mode: darken;
 }
-
-.homepage {
-    position: relative;
-    background-color: #dce4f0;
-    width: 100%;
-    height: 1024px;
-    overflow-x: auto;
-    text-align: center;
-    font-size: 24px;
-    color: var(--color-black);
-    font-family: var(--font-inter);
-}
+    
 
 </style>
