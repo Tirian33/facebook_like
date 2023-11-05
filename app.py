@@ -221,16 +221,16 @@ def updateAccountPassword():
     if acnt is None:
         abort(404, "Your account does not exist.")
     
-    currPW = request.form.get('currentPassword')
-    newPW = request.form.get('newPassword')
+    currPW = request.form.get('current-password')
+    newPW = request.form.get('new-password')
 
     if currPW is None or newPW is None:
         abort(400, "Incorrect arguments.")
 
     if(not acnt.changePW(currPW, newPW)):
         abort(400, "Your the password you entered is incorrect.")
-
-    return "Okay", 200
+    db.session.commit()
+    return redirect(url_for('settingsPage'))
 
 @app.route('/api/account/<int:id>')
 @jwt_required()
