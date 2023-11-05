@@ -493,8 +493,12 @@ def makeReaction():
         abort(400, "The post you are trying to react to has been deleted.")
 
     for reaction in targetPost.reactions:
-        if reaction.posterID == get_jwt_identity():
-            abort(400, "You have already liked this post.")
+        if reaction.posterID == get_jwt_identity() and reaction.deletedAt != None:
+            reaction.deletedAt = None
+            db.session.commit()
+
+            return "OK", 200 #returning "OK"
+
 
     
     
@@ -508,12 +512,15 @@ def makeReaction():
     newReaction = Reaction(resTo=request.form.get('respTo'), pID=get_jwt_identity())
     db.session.add(newReaction)
     db.session.commit()
+
+    return "OK", 200
  
-    return "OK", 200 #returning "OK"
+    
 
 @app.route('/api/reaction/<int:reactionID>', methods=['DELETE'])
 @jwt_required()
 def deleteReaction(reactionID):
+   
     requesterID = get_jwt_identity()
     
     target = Reaction.query.filter_by(id=reactionID).first()
@@ -526,6 +533,8 @@ def deleteReaction(reactionID):
         target.deletedAt = datetime.now()
         db.session.commit()
         return "Done", 200
+    
+   
     
     abort(401) #Request was made by someone without perms
 
@@ -646,14 +655,31 @@ def homePage():
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
 
     likedPosts = []
+    likedReactions = []
     for post in timeline:
         for reaction in post.reactions:
             if reaction.posterID == get_jwt_identity():
-                likedPosts.append(post.id)
+                if reaction.deletedAt == None:
+                    likedPosts.append(post.id)
+                    likedReactions.append(reaction.id)
 
+    userReactions = {likedPosts[i]: likedReactions[i] for i in range(len(likedPosts))}
+    
+    posts = []
+    numLikes = []
+    for post in timeline:
+        posts.append(post.id)
+        num_likes = 0
+        for reaction in post.reactions:
+            if reaction.deletedAt == None:
+                    num_likes = num_likes+1
+        numLikes.append(num_likes)
 
+    numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
+
+    print(numLikes)
    
-    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID, likedPosts = likedPosts)
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID, likedPosts = likedPosts, userReactions=userReactions, numLikes=numLikes)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
@@ -688,12 +714,29 @@ def timeline(accID):
         processedTL.append(pst.process(myAcc.id))
 
     likedPosts = []
+    likedReactions = []
     for post in timeline:
         for reaction in post.reactions:
             if reaction.posterID == get_jwt_identity():
-                likedPosts.append(post.id)
+                if reaction.deletedAt == None:
+                    likedPosts.append(post.id)
+                    likedReactions.append(reaction.id)
 
-    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity(), likedPosts=likedPosts)
+    userReactions = {likedPosts[i]: likedReactions[i] for i in range(len(likedPosts))}\
+    
+    posts = []
+    numLikes = []
+    for post in timeline:
+        posts.append(post.id)
+        num_likes = 0
+        for reaction in post.reactions:
+            if reaction.deletedAt == None:
+                    num_likes = num_likes+1
+        numLikes.append(num_likes)
+
+    numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
+
+    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity(), userReactions=userReactions, likedPosts=likedPosts, numLikes=numLikes)
 
 
 @app.route('/friends')
