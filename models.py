@@ -38,6 +38,14 @@ class Account(db.Model):
         data = {}
         data[self.id] = self.fName + " " + self.lName
         return data
+    
+    def changePW(self, oldPW, newPW):
+        if not self.checkPW(oldPW):
+            return False
+        
+        #Password was correct so change the PW to the new PW
+        self.passwordHash = bcrypt.generate_password_hash(newPW).decode('utf-8')
+        return True
 
 
     def __init__(self, username, passwordUnhashed, first, last, public = False):

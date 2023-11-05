@@ -157,13 +157,88 @@ def makeAccount():
     
     return response
 
+@app.route('/api/account/updateImages', methods=['POST'])
+@jwt_required()
+def updateAccountImages():
+    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
+
+    if acnt is None:
+        abort(404, "Your account does not exist.")
+
+    # If an profile image is uploaded....
+    if len(request.files.getlist('profile-pic')) == 1 and request.files['profile-pic'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        profile_pic = request.files['profile-pic']
+        filename = secure_filename(profile_pic.filename)
+        image = profile_pic.read()
+        if len(image) < 60000:
+
+            mimetype = profile_pic.mimetype
+            img = Img(img=image, mimetype=mimetype, name=filename)
+            
+            # Store the image object
+            db.session.add(img)
+            db.session.commit()
+
+            # Get the image id
+            img_id = img.id
+
+            acnt.profileImageID = img_id
+        else:
+            abort(400, "Maximum image file size is 40 KB.")
+
+    if len(request.files.getlist('cover-pic')) == 1 and request.files['cover-pic'].mimetype != 'application/octet-stream':
+        # Retrieve the image object
+        cover_pic = request.files['cover-pic']
+        
+        filename = secure_filename(cover_pic.filename)
+        image = cover_pic.read()
+        if len(image) < 60000:
+
+            mimetype = cover_pic.mimetype
+            img = Img(img=image, mimetype=mimetype, name=filename)
+            
+            # Store the image object
+            db.session.add(img)
+            db.session.commit()
+
+            # Get the image id
+            img_id = img.id
+
+            acnt.coverImageID = img_id
+        else:
+            abort(400, "Maximum image file size is 40 KB.")
+    
+    db.session.add(acnt)
+    db.session.commit()
+    return "Okay", 200
+
+@app.route('/api/account/updatePassword', methods=['POST'])
+@jwt_required()
+def updateAccountPassword():
+    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
+
+    if acnt is None:
+        abort(404, "Your account does not exist.")
+    
+    currPW = request.form.get('currentPassword')
+    newPW = request.form.get('newPassword')
+
+    if currPW is None or newPW is None:
+        abort(400, "Incorrect arguments.")
+
+    if(not acnt.changePW(currPW, newPW)):
+        abort(400, "Your the password you entered is incorrect.")
+
+    return "Okay", 200
+
 @app.route('/api/account/<int:id>')
 @jwt_required()
 def getAccount(id):
     acnt = Account.query.get(id)
     if not acnt:
         abort(400) #Account not found
-    return jsonify(acnt)
+    return jsonify(acnt.toDict())
 
 @app.route('/api/login', methods=['POST'])
 def accountLogin():
