@@ -483,23 +483,32 @@ def deleteReply(replyID):
 @app.route('/api/reaction', methods=['POST'])
 @jwt_required()
 def makeReaction():
-    if (request.json.get('reactionType') is None or request.json.get('respTo') is None):
+
+    
+    if (request.form.get('reactionType') is None or request.form.get('respTo') is None):
         abort(400, "Invalid request recieved.")
 
-    targetPost = Post.query.filter_by(id = request.json.get('respTo'), deletedAt = None).first()
+    targetPost = Post.query.filter_by(id = request.form.get('respTo'), deletedAt = None).first()
     if targetPost is None:
         abort(400, "The post you are trying to react to has been deleted.")
-    
-    permission = canMakeContent(request.json.get('respTo'), get_jwt_identity())
-    if permission == 2:
-        abort(400, "You do not have permission to react right now.")
-    elif permission == 3:
-        abort(400, "You are not friends. You cannot react.")
-    
 
-    newReply = Reply(request.json.get('respTo'), get_jwt_identity(), request.json.get('textContent'))
-    db.session.add(newReply)
+    for reaction in targetPost.reactions:
+        if reaction.posterID == get_jwt_identity():
+            abort(400, "You have already liked this post.")
+
+    
+    
+    # permission = canMakeContent(request.form.get('respTo'), get_jwt_identity())
+    # if permission == 2:
+    #     abort(400, "You do not have permission to react right now.")
+    # elif permission == 3:
+    #     abort(400, "You are not friends. You cannot react.")
+   
+
+    newReaction = Reaction(resTo=request.form.get('respTo'), pID=get_jwt_identity())
+    db.session.add(newReaction)
     db.session.commit()
+ 
     return "OK", 200 #returning "OK"
 
 @app.route('/api/reaction/<int:reactionID>', methods=['DELETE'])
@@ -636,8 +645,15 @@ def homePage():
 
     timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
 
+    likedPosts = []
+    for post in timeline:
+        for reaction in post.reactions:
+            if reaction.posterID == get_jwt_identity():
+                likedPosts.append(post.id)
+
+
    
-    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID)
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID, likedPosts = likedPosts)
 
 @app.route('/timeline/<int:accID>')
 @jwt_required()
