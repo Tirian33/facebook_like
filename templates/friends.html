@@ -6,9 +6,29 @@
     <header class="cover-photo">
        
     </header>
+     <!-- User Account Dropdown -->
+     <div class="user-account">
+        <div class="user-avatar">
+            {% if account.profileImageID != None %}
+                    <img src="/api/images/{{account.profileImageID}}" alt="">
+                    {% else %}
+                    <img src="static/public/profile.png" alt="">
+                    {% endif %}
+           <!-- <img src="static/public/strawberry.jpg" alt=""> -->
+        </div>
+        <div class="user-dropdown">
+            <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
+            <div class="user-dropdown-content" id="user-dropdown-content">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <a href="/login">Logout</a>
+            </div>
+        </div>
+    </div>
+
     <div class="profile-container">
         <!--profile container  -->
-        <h1 class="profile-name">{{account.username}}</h1>
+       
     </div>
     <div class="content-container">
         <div class="friends-container">
@@ -16,7 +36,11 @@
             <ul class="friends-list">
                 {% for friend in friends %}
                 <li>
+                    {% if account.profileImageID != None %}
+                    <img src="/api/images/{{account.profileImageID}}" alt="">
+                    {% else %}
                     <img src="static/public/profile.png" alt="">
+                    {% endif %}
                     <p>{{friend.username}}</p>
                     <div class="friend-buttons">
                         <a href="/timeline/{{friend.id}}">
@@ -34,13 +58,17 @@
             <form method="POST", action="/api/makeFriend", id="newFriendForm">
                 <input type="text" id="friendCode" name="friendCode" placeholder="Enter friend code...">
                 <button class="message-button" id="send-friend-request-button">submit</button>
-                <label for="UserCode" style="left:150px;">     Your code: {{account.id}}</label>
+                <label for="UserCode" style="left:150px;">     Your code: {{ account['friendCode'] }}</label>
             </form>
             <h2 class="pending-requests-header">Pending Requests</h2>
             <ul class="pending-requests-list">
                 {% for pending in pending %}
                 <li>
+                    {% if account.profileImageID != None %}
+                    <img src="/api/images/{{account.profileImageID}}" alt="">
+                    {% else %}
                     <img src="static/public/profile.png" alt="">
+                    {% endif %}
                     <p>{{pending.username}}</p>
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
@@ -69,7 +97,7 @@
             <span class="close" id="close-unfriend-popup">&times;</span>
             <h2>Unfriend <span id="unfriend-popup-username"></span></h2>
             <p>Are you sure you want to unfriend this person?</p>
-            <button id="unfriend-popup-confirm">Unfriend</button>
+            <button class="unfriend-popup-confirm" id="unfriend-popup-confirm">Unfriend</button>
         </div>
     </div>
 
@@ -79,7 +107,7 @@
             <span class="close" id="close-accept-popup">&times;</span>
             <h2>Accept Friend Request from <span id="accept-popup-username"></span></h2>
             <p>Are you sure you want to accept this friend request?</p>
-            <button id="accept-popup-confirm">Accept</button>
+            <button class="accept-popup-confirm" id="accept-popup-confirm">Accept</button>
         </div>
     </div>
 
@@ -89,12 +117,29 @@
             <span class="close" id="close-decline-popup">&times;</span>
             <h2>Decline Friend Request from <span id="decline-popup-username"></span></h2>
             <p>Are you sure you want to decline this friend request?</p>
-            <button id="decline-popup-confirm">Decline</button>
+            <button class="decline-popup-confirm" id="decline-popup-confirm">Decline</button>
         </div>
     </div>
 
     <!-- Your script tag for JavaScript -->
     <script>
+
+            document.addEventListener("DOMContentLoaded", function() {
+                        // User Account Dropdown
+                        const userDropdownButton = document.getElementById("user-dropdown-button");
+                        const userDropdownContent = document.getElementById("user-dropdown-content");
+
+                        userDropdownButton.addEventListener("click", () => {
+                            userDropdownContent.classList.toggle("show");
+                        });
+
+                        // Close the dropdown if the user clicks outside of it
+                        window.addEventListener("click", (event) => {
+                            if (event.target !== userDropdownButton) {
+                                userDropdownContent.classList.remove("show");
+                            }
+                        });
+                    });
         //Friend Request Maker
         var friendForm = document.getElementById("newFriendForm");
         friendForm.addEventListener("submit", function(event){
@@ -223,6 +268,8 @@
 
 <style>
 .content-container {
+    margin-top: 60px;
+    padding: 20px;
     display: flex;
     justify-content: space-between;
 }
@@ -353,6 +400,33 @@
     filter: brightness(0.8);
 }
 
+.decline-popup-confirm {
+    background-color: #f44336; /* Red for Decline */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+   
+}
+.unfriend-popup-confirm {
+    background-color: #f44336; /* Red for Decline */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+   
+}
+.accept-popup-confirm {
+    background-color: #4caf50; /* Red for Decline */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    
+}
+.accept-popup-confirm:hover, .decline-popup-confirm:hover, .unfriend-popup-confirm:hover {
+    filter: brightness(0.8);
+}
 
 .popup {
     display: none;
@@ -385,5 +459,72 @@
     font-size: 20px;
     cursor: pointer;
 }
+.user-account {
+    background-color: #1877f2; 
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 60px; 
+    z-index: 1; 
+    border-radius: 15px 15px 15px 15px;
 
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-dropdown {
+    position: absolute;
+}
+
+.user-dropdown-button {
+    border-radius: 10%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 30;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.user-dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.user-dropdown-content a:hover {
+    background-color: #f2f2f2;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.show {
+    display: block;
+}
 </style>

@@ -2,11 +2,199 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TEMP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="templates/settings.css">
 </head>
 <body>
-    <p>
-        This is a placeholder
-    </p>
+    <header>
+        <h1>Settings</h1>
+    </header>
+    <div class="settings-container">
+        <form>
+            <div class="user-avatar">
+                <img src="static/public/strawberry.jpg" alt="">
+                <h3 class="profile-name">{{account.username}}</h3>
+            </div>
+            </form>
+    <form method="POST" action="/api/account/updateImages" class="updateImages" enctype="multipart/form-data"  id = "{{ account.id }}">
+
+            <label for="profile-image">Change Profile Image:</label>
+            <input type="file" id="profile-image" name="profile-image">
+            <label for="cover-image">Change Cover Image:</label>
+            <input type="file" id="cover-image" name="profile-image">
+            <button id="save-profile-cover-img-button">Update Images</button>
+           
+    </form>      
+  <form method="POST" action="/api/account/updatePassword" class="updatePassword" enctype="multipart/form-data"  id = "{{ account.id }}">
+
+            <label for="current-password">Current Password:</label>
+            <input type="password" id="current-password" name="current-password" placeholder="Current password">
+
+            <label for="new-password">New Password:</label>
+            <input type="password" id="new-password" name="new-password" placeholder="New password">
+
+            <label for="confirm-password">Confirm Password:</label>
+            <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm new password">
+
+            <button id="save-settings-button">Update Password</button>
+            <a href="/timeline/{{account.id}}" ><button id="cancel-settings-button">Cancel</button></a>
+
+        </form>
+    </div>
+    <script>
+
+                //update password function
+                document.getElementById("save-settings-button").addEventListener("click", function() {
+                    // Get the values from input fields
+                    const currentPassword = document.getElementById("current-password").value;
+                    const newPassword = document.getElementById("new-password").value;
+                    const confirmPassword = document.getElementById("confirm-password").value;
+
+                    // Perform client-side validation (you should also validate on the server)
+                     if(newPassword.value.length< 8){
+                        alert("Password should be atleast 8 characters !");
+                    }
+                    else if (newPassword !== confirmPassword) {
+                        alert("New password and confirm password do not match.");
+                        return;
+                    }
+                    else{
+                    // Send a request to the server to update the password
+                    // const data = {
+                    //     currentPassword: currentPassword,
+                    //     newPassword: newPassword,
+                    // };
+                    var Data = new FormData(document.querySelector('.updatePassword'));
+
+
+                    fetch('/api/account/updatePassword', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: Data,
+                    })
+                    .then(function(res)
+                     {
+                        console.log(result);
+                        // Handle the server's response, e.g., show a success message or error message
+                        if (res.status == 200) {
+                            alert("Password updated successfully!");
+                            window.location.href = '/profile';
+                        } else {
+                            alert("Password update failed. Please check your current password.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }});
+
+//         document.getElementById("cancel-settings-button").addEventListener("click", function() {
+//     window.history.back();
+// });
+    </script>
 </body>
 </html>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #1877f2; /* Facebook blue */
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+}
+
+.settings-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+input[type="file"], input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button#save-settings-button {
+    background-color: #1877f2; /* Facebook blue */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button#save-settings-button:hover {
+    background-color: #1659a3; /* Darker blue on hover */
+}
+
+button#save-settings-button, button#cancel-settings-button {
+    background-color: #1877f2; /* Facebook blue */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button#save-settings-button:hover, button#cancel-settings-button:hover {
+    background-color: #1659a3; /* Darker blue on hover */
+}
+
+button#cancel-settings-button {
+    background-color: #ccc; /* Light gray */
+    margin-left: 10px; /* Add space between Save and Cancel buttons */
+}
+
+button#save-profile-cover-img-button {
+    background-color: #1877f2; 
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button#save-profile-cover-img-button:hover {
+    background-color: #1659a3; /* Darker blue on hover */
+}
+
+
+</style>

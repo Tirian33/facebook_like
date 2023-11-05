@@ -700,7 +700,8 @@ def signUpPage():
 @app.route('/settings')
 @jwt_required()
 def settingsPage():
-    acc = Account.query.filter_by(id=get_jwt_identity()).first()
+    userAccID = get_jwt_identity()
+    acc = Account.query.filter_by(id=userAccID).first()
     return render_template('settings.html', account = acc.toDict())
 
 
