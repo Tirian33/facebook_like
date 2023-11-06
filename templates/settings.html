@@ -13,20 +13,24 @@
     <div class="settings-container">
         <form>
             <div class="user-avatar">
-                <img src="static/public/strawberry.jpg" alt="">
+                {% if account.coverImageID != None %}
+                        <img src='/api/images/{{account.coverImageID}}'/>
+                {% else %}
+                        <img src="/static/public/cover-page.jpg">
+                {% endif %}
                 <h3 class="profile-name">{{account.username}}</h3>
             </div>
             </form>
-    <form method="POST" action="/api/account/updateImages" class="updateImages" enctype="multipart/form-data"  id = "{{ account.id }}">
+    <form method="POST" action="/api/account/updateImages" class="updateImages" enctype="multipart/form-data"  id = "IMG">
 
             <label for="profile-image">Change Profile Image:</label>
             <input type="file" id="profile-image" name="profile-image">
             <label for="cover-image">Change Cover Image:</label>
-            <input type="file" id="cover-image" name="profile-image">
+            <input type="file" id="cover-image" name="cover-image">
             <button id="save-profile-cover-img-button">Update Images</button>
            
     </form>      
-  <form method="POST" action="/api/account/updatePassword" class="updatePassword" enctype="multipart/form-data"  id = "{{ account.id }}">
+  <form method="POST" action="/api/account/updatePassword" class="updatePassword" enctype="multipart/form-data"  id = "PW">
 
             <label for="current-password">Current Password:</label>
             <input type="password" id="current-password" name="current-password" placeholder="Current password">
@@ -43,57 +47,76 @@
         </form>
     </div>
     <script>
+        document.getElementById("save-settings-button").addEventListener("click", function() {
 
-                //update password function
-                document.getElementById("save-settings-button").addEventListener("click", function() {
-                    // Get the values from input fields
-                    const currentPassword = document.getElementById("current-password").value;
-                    const newPassword = document.getElementById("new-password").value;
-                    const confirmPassword = document.getElementById("confirm-password").value;
+            //Prevent normal unhandled submit
+            event.preventDefault();
 
-                    // Perform client-side validation (you should also validate on the server)
-                     if(newPassword.value.length< 8){
-                        alert("Password should be atleast 8 characters !");
-                    }
-                    else if (newPassword !== confirmPassword) {
-                        alert("New password and confirm password do not match.");
-                        return;
-                    }
-                    else{
-                    // Send a request to the server to update the password
-                    // const data = {
-                    //     currentPassword: currentPassword,
-                    //     newPassword: newPassword,
-                    // };
-                    var Data = new FormData(document.querySelector('.updatePassword'));
+            // Get the values from input fields
+            const currentPassword = document.getElementById("current-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            // Perform client-side validation (you should also validate on the server)
+                if(newPassword.length< 8){
+                alert("Password should be atleast 8 characters !");
+            }
+            else if (newPassword !== confirmPassword) {
+                alert("New password and confirm password do not match.");
+                return;
+            }
+            else{
+            var Data = new FormData(document.querySelector('.updatePassword'));
 
 
-                    fetch('/api/account/updatePassword', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: Data,
-                    })
-                    .then(function(res)
-                     {
-                        console.log(result);
-                        // Handle the server's response, e.g., show a success message or error message
-                        if (res.status == 200) {
-                            alert("Password updated successfully!");
-                            window.location.href = '/profile';
-                        } else {
-                            alert("Password update failed. Please check your current password.");
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-                }});
+            fetch('/api/account/updatePassword', {
+                method: 'POST',
+                headers: {},
+                body: Data,
+            }).then(function(res)
+                {
+                console.log(res);
+                // Handle the server's response, e.g., show a success message or error message
+                if (res.status == 200) {
+                    alert("Password updated successfully!");
+                    window.location.href = '/profile';
+                } else {
+                    alert("Password update failed. Please check your current password.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }});
 
-//         document.getElementById("cancel-settings-button").addEventListener("click", function() {
-//     window.history.back();
-// });
+        //save-profile-cover-img-button
+        document.getElementById("save-profile-cover-img-button").addEventListener("click", function() {
+
+            //Prevent normal unhandled submit
+            event.preventDefault();
+
+            var Data = new FormData(document.querySelector('.updateImages'));
+            console.log(Data);
+
+            fetch('/api/account/updateImages', {
+                method: 'POST',
+                headers: {},
+                body: Data,
+            }).then(function(res)
+                {
+                console.log(res);
+                // Handle the server's response, e.g., show a success message or error message
+                if (res.status == 200) {
+                    alert("Images were updated.");
+                    window.location.href = '/profile';
+                } else {
+                    alert("An unknown error has occured.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
     </script>
 </body>
 </html>

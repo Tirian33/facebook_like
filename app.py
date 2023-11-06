@@ -161,14 +161,13 @@ def makeAccount():
 @jwt_required()
 def updateAccountImages():
     acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
-
     if acnt is None:
         abort(404, "Your account does not exist.")
 
     # If an profile image is uploaded....
-    if len(request.files.getlist('profile-pic')) == 1 and request.files['profile-pic'].mimetype != 'application/octet-stream':
+    if len(request.files.getlist('profile-image')) == 1 and request.files['profile-image'].mimetype != 'application/octet-stream':
         # Retrieve the image object
-        profile_pic = request.files['profile-pic']
+        profile_pic = request.files['profile-image']
         filename = secure_filename(profile_pic.filename)
         image = profile_pic.read()
         if len(image) < 60000:
@@ -187,9 +186,9 @@ def updateAccountImages():
         else:
             abort(400, "Maximum image file size is 40 KB.")
 
-    if len(request.files.getlist('cover-pic')) == 1 and request.files['cover-pic'].mimetype != 'application/octet-stream':
+    if len(request.files.getlist('cover-image')) == 1 and request.files['cover-image'].mimetype != 'application/octet-stream':
         # Retrieve the image object
-        cover_pic = request.files['cover-pic']
+        cover_pic = request.files['cover-image']
         
         filename = secure_filename(cover_pic.filename)
         image = cover_pic.read()
@@ -230,7 +229,7 @@ def updateAccountPassword():
     if(not acnt.changePW(currPW, newPW)):
         abort(400, "Your the password you entered is incorrect.")
     db.session.commit()
-    return redirect(url_for('settingsPage'))
+    return "Okay", 200
 
 @app.route('/api/account/<int:id>')
 @jwt_required()
@@ -267,8 +266,6 @@ def logOut():
 def sendFriendRequest():
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of requested friend.")
-    # elif len(request.json.get('friendCode')) != 8:
-    #     abort(400, "Friend Code is 8 characters.")
 
     targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
    
@@ -300,7 +297,6 @@ def sendFriendRequest():
 @app.route('/api/declineFriend', methods=['POST'])
 @jwt_required()
 def declineFriendRequest():
-    print(request.json)
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of declining friend.")
     elif len(request.json.get('friendCode')) != 8:
@@ -324,7 +320,6 @@ def declineFriendRequest():
 @app.route('/api/removeFriend', methods=['POST'])
 @jwt_required()
 def removeFriend():
-    print(request.json)
     if request.json.get('friendCode') is None:
         abort(400, "Need Friend Code of ex-friend.")
     elif len(request.json.get('friendCode')) != 8:
@@ -676,8 +671,6 @@ def homePage():
         numLikes.append(num_likes)
 
     numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
-
-    print(numLikes)
    
     return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID, likedPosts = likedPosts, userReactions=userReactions, numLikes=numLikes)
 
