@@ -21,7 +21,7 @@
             <div class="user-dropdown-content" id="user-dropdown-content">
                 <a href="/profile">Profile</a>
                 <a href="/settings">Settings</a>
-                <a href="/login">Logout</a>
+                <a href="#" id="logout">Logout</a>
             </div>
         </div>
     </div>
@@ -171,6 +171,32 @@
         });
 
         document.addEventListener("DOMContentLoaded", function() {
+            //Logout button
+            document.getElementById('logout').addEventListener('click', function(event) {
+                event.preventDefault();
+
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friendCode }), 
+                }).then(function (res) {
+                        if (res.status == 200) {
+                            window.location.href = '/login';
+                        } else {
+                            alert('An Error has occured.');
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log("ERROR ON LOGOUT:", error);
+                    });
+
+            });
+
+
+
+
+
+
             const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button");
             const closePopupButtons = document.querySelectorAll(".close");
             const popups = document.querySelectorAll(".popup");

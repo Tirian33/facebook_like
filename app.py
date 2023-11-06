@@ -254,7 +254,7 @@ def accountLogin():
     #Bad info must have been given so we abort
     abort(401)
 
-@app.route('/api/logout')
+@app.route('/api/logout',  methods=['POST'])
 def logOut():
     resp = jsonify({"msg": "Logged out"})
     unset_access_cookies(resp)
