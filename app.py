@@ -1,13 +1,10 @@
-import os
-from flask import Flask, abort, request, jsonify, g, render_template, Response, redirect, url_for
+from flask import Flask, abort, request, jsonify, Response, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import PendingRollbackError, OperationalError, TimeoutError
-from sqlalchemy import distinct
-from flask_marshmallow import Marshmallow
+from sqlalchemy.exc import PendingRollbackError, OperationalError
 from datetime import (datetime, timedelta, timezone)
 import jwt
 from flask_jwt_extended import *
-from flask_bcrypt import *
+from flask_bcrypt import Bcrypt
 import json
 from werkzeug.utils import secure_filename
 
@@ -19,45 +16,29 @@ bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 app.app_context().push() 
 
+#registering Blueprints
+from account_bp import account_bp
+app.register_blueprint(account_bp)
+
+from pages_bp import pages_bp
+app.register_blueprint(pages_bp)
+
+from relationship_bp import relationship_bp
+app.register_blueprint(relationship_bp)
+
+from pst_rep_rea_bp import pst_rep_rea_bp
+app.register_blueprint(pst_rep_rea_bp)
+
 from models import *
-
-#Constasnts go here
-
-#assisting methods go here
-def softDeleteObjects(listing) -> None:
-    for item in listing:
-        item.deletedAt = datetime.now()
-    db.session.commit()
-
-#Both account IDs are assumed to not be None
-def canMakeContent(targetAccID, posterID):
-   
-    if int(targetAccID) == posterID:
-        return 1
-    
-
-    targetAcc = Account.query.filter_by(id = targetAccID).first()
-
-    if targetAcc is not None:
-        if not targetAcc.isPublic:
-            return 2
-        
-        rel = Relationship.query.filter_by(firstAccountID = targetAcc.id, secondAccountID = posterID, deletedAt = None, isFriendRelation = True).first()
-        if rel is not None:
-            return 1
-    #Not the same account, and Poster is not friend with target account.
-    return 3
-
-
 
 #ERROR HANDLING
 @jwt.unauthorized_loader
 def handleMissingToken(error):
     print(error)
     if 'Missing cookie "access_token_cookie"' in str(error):
-        return redirect(url_for('loginPage', redirectReason = "noTkn"))  #Was not signed in
+        return redirect(url_for('pages.loginPage', redirectReason = "noTkn"))  #Was not signed in
     
-    return redirect(url_for('loginPage', redirectReason = "tknExp"))  #Token expired
+    return redirect(url_for('pages.loginPage', redirectReason = "tknExp"))  #Token expired
 
 @app.errorhandler(500)
 def handle500(error):
@@ -75,166 +56,14 @@ def handle500(error):
 def refreshJWT(response):
     try: 
         expireTime = get_jwt()["exp"]
-        refreshtime = datetime.timestamp(datetime.now(timezone.utc) + timedelta(minutes=5))
+        refreshtime = datetime.timestamp(datetime.now(timezone.utc) + timedelta(minutes=10))
         if refreshtime > expireTime:
-            newToken = create_access_token(identity=get_jwt_identity(), expires_delta=timedelta(minutes=5))
+            newToken = create_access_token(identity=get_jwt_identity(), expires_delta=timedelta(minutes=10))
             set_access_cookies(response, newToken)
         return response
     #If user manages to get here with a corrupted token throws RT error so just return the corrupted token.
     except (RuntimeError, KeyError):
         return response
-
-
-#API routes
-
-#Account related
-
-#Account creation at default request
-@app.route('/api/account', methods=['POST'])
-def makeAccount():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    fName = request.form.get('fName')
-    lName = request.form.get('lName')
-    public = request.form.get('public') == 'public'
-
-    if Account.query.filter_by(username=username).first() is not None:
-        abort(400)  #Username is already in use
-    acnt = Account(username, password, fName, lName, public)
-
-    # If an profile image is uploaded....
-    if len(request.files.getlist('profile-pic')) == 1 and request.files['profile-pic'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        profile_pic = request.files['profile-pic']
-        filename = secure_filename(profile_pic.filename)
-        image = profile_pic.read()
-        if len(image) < 60000:
-
-            mimetype = profile_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            acnt.profileImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
-
-    if len(request.files.getlist('cover-pic')) == 1 and request.files['cover-pic'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        cover_pic = request.files['cover-pic']
-        
-        filename = secure_filename(cover_pic.filename)
-        image = cover_pic.read()
-        if len(image) < 60000:
-
-            mimetype = cover_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            acnt.coverImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
-    
-    db.session.add(acnt)
-    db.session.commit()
-    accountToken = create_access_token(identity=acnt.id, expires_delta=timedelta(minutes=10))
-    response = jsonify({"msg": "login is valid for accountID " + str(acnt.id)})
-    set_access_cookies(response, accountToken)
-    
-    return response
-
-@app.route('/api/account/updateImages', methods=['POST'])
-@jwt_required()
-def updateAccountImages():
-    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
-    if acnt is None:
-        abort(404, "Your account does not exist.")
-
-    # If an profile image is uploaded....
-    if len(request.files.getlist('profile-image')) == 1 and request.files['profile-image'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        profile_pic = request.files['profile-image']
-        filename = secure_filename(profile_pic.filename)
-        image = profile_pic.read()
-        if len(image) < 60000:
-
-            mimetype = profile_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            acnt.profileImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
-
-    if len(request.files.getlist('cover-image')) == 1 and request.files['cover-image'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        cover_pic = request.files['cover-image']
-        
-        filename = secure_filename(cover_pic.filename)
-        image = cover_pic.read()
-        if len(image) < 60000:
-
-            mimetype = cover_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            acnt.coverImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
-    
-    db.session.add(acnt)
-    db.session.commit()
-    return "Okay", 200
-
-@app.route('/api/account/updatePassword', methods=['POST'])
-@jwt_required()
-def updateAccountPassword():
-    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
-
-    if acnt is None:
-        abort(404, "Your account does not exist.")
-    
-    currPW = request.form.get('current-password')
-    newPW = request.form.get('new-password')
-
-    if currPW is None or newPW is None:
-        abort(400, "Incorrect arguments.")
-
-    if(not acnt.changePW(currPW, newPW)):
-        abort(400, "Your the password you entered is incorrect.")
-    db.session.commit()
-    return "Okay", 200
-
-@app.route('/api/account/<int:id>')
-@jwt_required()
-def getAccount(id):
-    acnt = Account.query.get(id)
-    if not acnt:
-        abort(400) #Account not found
-    return jsonify(acnt.toDict())
 
 @app.route('/api/login', methods=['POST'])
 def accountLogin():
@@ -257,346 +86,12 @@ def logOut():
     unset_access_cookies(resp)
     return resp
 
-#Friend request sending
-@app.route('/api/makeFriend', methods=['POST'])
-@jwt_required()
-def sendFriendRequest():
-    if request.json.get('friendCode') is None:
-        abort(400, "Need Friend Code of requested friend.")
-
-    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
-   
-    if targetAccount is None:
-        abort(400, "Friend not found.")
-    
-    pendingInverse = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
-    
-    # Other person sent a friend request in the past, lets accept
-    if pendingInverse is not None:
-        if pendingInverse.isFriendRelation: 
-            pendingInverse.confirmedRelation = True
-            db.session.add(pendingInverse.makeInverse())
-            db.session.commit()
-            return "OK", 200
-
-    # Request was sent in the past
-    if Relationship.query.filter_by(firstAccountID = get_jwt_identity(), secondAccountID = targetAccount.id).first() is not None:
-        abort(400, "Request already sent")
-
-    # Lets make the request
-    elif pendingInverse is None:
-        newRelationship = Relationship(get_jwt_identity(), targetAccount.id)
-        db.session.add(newRelationship)
-        db.session.commit()
-    
-    return "OK", 200
-
-@app.route('/api/declineFriend', methods=['POST'])
-@jwt_required()
-def declineFriendRequest():
-    if request.json.get('friendCode') is None:
-        abort(400, "Need Friend Code of declining friend.")
-    elif len(request.json.get('friendCode')) != 8:
-        abort(400, "Friend Code is 8 characters.")
-
-    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
-   
-    if targetAccount is None:
-        abort(400, "Friend not found.")
-    
-    targetRelationship = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
-    
-    if targetRelationship is None:
-        abort(400, "User has no pending request from specified friendCode.")
-    
-    targetRelationship.deletedAt = datetime.now()
-    db.session.commit()
-    
-    return "OK", 200
-
-@app.route('/api/removeFriend', methods=['POST'])
-@jwt_required()
-def removeFriend():
-    if request.json.get('friendCode') is None:
-        abort(400, "Need Friend Code of ex-friend.")
-    elif len(request.json.get('friendCode')) != 8:
-        abort(400, "Friend Code is 8 characters.")
-
-    targetAccount = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
-   
-    if targetAccount is None:
-        abort(400, "Ex-friend not found.")
-    
-    targetRelationship = Relationship.query.filter_by(secondAccountID = targetAccount.id, firstAccountID = get_jwt_identity(), deletedAt = None).first()
-    targetRelationshipInv = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
-    
-    targetRelationship.deletedAt = datetime.now()
-    targetRelationshipInv.deletedAt = datetime.now()
-    db.session.commit()
-    
-    return "OK", 200
-
-#Post related
-@app.route('/api/post', methods=['POST'])
-@jwt_required()
-def makePost():
-    if ((request.form.get('textContent') is None and request.form.get('sharedPostId')is None) or request.form.get('postedOnID') is None):
-        abort(400, "Invalid request recieved.")
-
-    targetAccount = Account.query.filter_by(id = request.form.get('postedOnID'), deletedAt = None).first()
-    if (targetAccount is None):
-        abort(400, "Can't find that person to post on.")
-    
-    permission = canMakeContent(request.form.get('postedOnID'), get_jwt_identity())
-    
-    if permission == 2:
-        abort(400, "You do not have permission to post right now.")
-    elif permission == 3:
-        abort(400, "You are not friends. You cannot post")
-    
-    newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'))
-   
-    # If there is only one image attachment...
-    if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
-
-        
-        # Retrieve the image object
-        pic = request.files['pic']
-        
-        filename = secure_filename(pic.filename)
-        image = pic.read()
-        if len(image) < 60000:
-
-            mimetype = pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            newPost.associatedImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
-
-    # If there are multiple image attachments, error out.
-    elif len(request.files.getlist('pic')) > 1:
-        abort(400, "Only one image may be uploaded at a time.")
-    
-    db.session.add(newPost)
-    db.session.commit()
-    
-    return "OK", 200 #returning "OK"
-
-@app.route('/api/post/edit/<int:postId>', methods=['POST'])
-@jwt_required()
-def editPost(postId):
-    if (request.form.get('textContent') is None):
-        abort(400, "Invalid request recieved.")
-
-    targetPost = Post.query.filter_by(id=postId, deletedAt = None, posterID = get_jwt_identity()).first()
-
-    if (targetPost is None):
-        abort(404, "Unable to find that post")
-
-    targetPost.textContent = request.form.get('textContent')
-    db.session.commit()
-    
-    return "OK", 200 #returning "OK"
-
-@app.route('/api/post/<int:postID>', methods=['DELETE'])
-@jwt_required()
-def deletePost(postID):
-    requesterID = get_jwt_identity()
-    targetPost = Post.query.filter_by(id=postID).first()
-    if targetPost is None:
-        abort(400) #Request made was bad
-    
-    if (targetPost.postedOnID == requesterID or targetPost.posterID == requesterID):
-        #DEL
-        softDeleteObjects(targetPost.replies)
-        softDeleteObjects(targetPost.reactions)
-        targetPost.deletedAt = datetime.now()
-        db.session.commit()
-        return "Done", 200
-    
-    abort(401) #Request was made by someone without perms
-
-#Reply related
-@app.route('/api/reply', methods=['POST'])
-@jwt_required()
-def makeReply():
-
-    if (request.form.get('textContent') is None or request.form.get('respTo') is None):
-        abort(400, "Invalid request recieved.")
-
-    targetPost = Post.query.filter_by(id = request.form.get('respTo'), deletedAt = None).first()
-    if targetPost is None:
-        abort(400, "The post you are trying to respond to has been deleted.")
-
-    targetAccount = Account.query.filter_by(id = targetPost.postedOnID, deletedAt = None).first()
-    if targetAccount is None:
-        abort(400, "The post you are trying to respond to has been deleted.")
-    
-    permission = canMakeContent(targetAccount.id, get_jwt_identity())
-    if permission == 2:
-        abort(400, "You do not have permission to reply right now.")
-    elif permission == 3:
-        abort(400, "You are not friends. You cannot reply.")
-    
-
-    newReply = Reply(request.form.get('respTo'), get_jwt_identity(), request.form.get('textContent'))
-    db.session.add(newReply)
-    db.session.commit()
-    return "Okay", 200
-
-@app.route('/api/reply/<int:replyID>', methods=['DELETE'])
-@jwt_required()
-def deleteReply(replyID):
-    requesterID = get_jwt_identity()
-    
-    target = Reply.query.filter_by(id=replyID, deletedAt=None).first()
-    if target is None:
-        abort(400) #Request made was bad
-    
-    containingPost = Post.query.filter_by(id=target.respondingTo).first()
-    
-    if (containingPost.postedOnID == requesterID or target.posterID == requesterID):
-        target.deletedAt = datetime.now()
-        db.session.commit()
-        return "Done", 200
-    
-    abort(401) #Request was made by someone without perms
-
-#Reaction related
-#Input {reactionType:int, respTo:int} respTo - FK PostID
-@app.route('/api/reaction', methods=['POST'])
-@jwt_required()
-def makeReaction():
-
-    
-    if (request.form.get('reactionType') is None or request.form.get('respTo') is None):
-        abort(400, "Invalid request recieved.")
-
-    targetPost = Post.query.filter_by(id = request.form.get('respTo'), deletedAt = None).first()
-    if targetPost is None:
-        abort(400, "The post you are trying to react to has been deleted.")
-
-    for reaction in targetPost.reactions:
-        if reaction.posterID == get_jwt_identity() and reaction.deletedAt != None:
-            reaction.deletedAt = None
-            db.session.commit()
-
-            return "OK", 200 #returning "OK"
-
-
-    
-    
-    # permission = canMakeContent(request.form.get('respTo'), get_jwt_identity())
-    # if permission == 2:
-    #     abort(400, "You do not have permission to react right now.")
-    # elif permission == 3:
-    #     abort(400, "You are not friends. You cannot react.")
-   
-
-    newReaction = Reaction(resTo=request.form.get('respTo'), pID=get_jwt_identity())
-    db.session.add(newReaction)
-    db.session.commit()
-
-    return "OK", 200
- 
-    
-
-@app.route('/api/reaction/<int:reactionID>', methods=['DELETE'])
-@jwt_required()
-def deleteReaction(reactionID):
-   
-    requesterID = get_jwt_identity()
-    
-    target = Reaction.query.filter_by(id=reactionID).first()
-    if target is None:
-        abort(400) #Request made was bad
-    
-    containingPost = Post.query.filter_by(id=target.respondingTo).first()
-
-    if (containingPost.postedOnID == requesterID or target.posterID == requesterID):
-        target.deletedAt = datetime.now()
-        db.session.commit()
-        return "Done", 200
-    
-   
-    
-    abort(401) #Request was made by someone without perms
-
 #Token related
-@app.route('/api/token')
-def getToken():
-    token = g.account.genToken(600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+# @app.route('/api/token')
+# def getToken():
+#     token = g.account.genToken(600)
+#     return jsonify({'token': token.decode('ascii'), 'duration': 600})
 
-
-# Image upload
-@app.route('/api/upload', methods=['POST'])
-def uploadImage():
-    pic = request.files['pic']
-
-    if not pic:
-        return 'No image uploaded', 400
-    
-    filename = secure_filename(pic.filename)
-    mimetype = pic.mimetype
-
-    img = Img(img=pic.read(), mimetype=mimetype, name=filename)
-    db.session.add(img)
-    db.session.commit()
-
-    return "Image successfully uploaded" , 200
-
-@app.route('/api/settings', methods=['POST'])
-@jwt_required()
-def settingsUpdate():
-    targetAcc = Account.query.filter_by(id=get_jwt_identity()).first()
-
-    targetAcc.isPublic = request.form.get('textContent') == 'public'
-
-    #START
-    if len(request.files.getlist('profileImage')) == 1 and request.files['profileImage'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        pic = request.files['profileImage']
-        filename = secure_filename(pic.filename)
-        mimetype = pic.mimetype
-        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
-        
-        # Store the image object
-        db.session.add(img)
-        db.session.commit()
-
-        # Get the image id
-        img_id = img.id
-
-        targetAcc.profileImageID = img_id 
-    
-    if len(request.files.getlist('coverImage')) == 1 and request.files['coverImage'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        pic = request.files['coverImage']
-        filename = secure_filename(pic.filename)
-        mimetype = pic.mimetype
-        img = Img(img=pic.read(), mimetype=mimetype, name=filename)
-        
-        # Store the image object
-        db.session.add(img)
-        db.session.commit()
-
-        # Get the image id
-        img_id = img.id
-        
-        targetAcc.coverImageID = img_id 
-
-    db.session.commit()
-
-    return "OK", 200
 
 # Display the image
 @app.route('/api/images/<int:id>')
@@ -607,157 +102,6 @@ def get_img(id):
         return "Image not found", 400
     
     return Response(img.img, mimetype=img.mimetype)
-
-#Webpages
-@app.route('/')
-def indexPage():
-    return redirect(url_for('loginPage'))
-
-@app.route('/login')
-def loginPage():
-    redirected = request.args.get('redirectReason')
-    return render_template('login.html', redirectReason=redirected)
-
-@app.route('/upload')
-def uploadPage():
-    return render_template('upload.html')
-
-@app.route('/register')
-def registerPage():
-    return render_template('register.html')
-
-@app.route('/profile')
-@jwt_required()
-def homePage():
-    userAccID = get_jwt_identity()
-    acc = Account.query.filter_by(id=userAccID).first()
-
-    #Gets all the accounts that are friends with the user.
-    allFriends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
-
-    friends = []
-    postable = {}
-    postable.update(acc.toPostData())
-
-    for friend in allFriends:
-        if friend.deletedAt is None:
-            friends.append(friend.toDict())
-        postable.update(friend.toPostData())
-
-    timeline = Post.query.filter_by(postedOnID=userAccID, deletedAt=None).order_by(Post.id.desc()).all()
-
-    likedPosts = []
-    likedReactions = []
-    for post in timeline:
-        for reaction in post.reactions:
-            if reaction.posterID == get_jwt_identity():
-                if reaction.deletedAt == None:
-                    likedPosts.append(post.id)
-                    likedReactions.append(reaction.id)
-
-    userReactions = {likedPosts[i]: likedReactions[i] for i in range(len(likedPosts))}
-    
-    posts = []
-    numLikes = []
-    for post in timeline:
-        posts.append(post.id)
-        num_likes = 0
-        for reaction in post.reactions:
-            if reaction.deletedAt == None:
-                    num_likes = num_likes+1
-        numLikes.append(num_likes)
-
-    numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
-   
-    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID, likedPosts = likedPosts, userReactions=userReactions, numLikes=numLikes)
-
-@app.route('/timeline/<int:accID>')
-@jwt_required()
-def timeline(accID):
-    if(accID == get_jwt_identity()):
-       return redirect(url_for('homePage'))
-
-    permission = canMakeContent(accID, get_jwt_identity())
-    if permission == 2:
-        abort(401, description="Profile is private.")
-    elif permission == 3:
-        abort(401, description="You are not friends.")
-
-    myAcc = Account.query.filter_by(id=get_jwt_identity()).first()
-    targetAcc = Account.query.filter_by(id=accID).first()
-
-    #Gets all the accounts that are friends with the user.
-    allFriends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == accID) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True)).all()
-
-    friends = []
-    postable = {}
-    postable.update(targetAcc.toPostData())
-
-    for friend in allFriends:
-        if friend.deletedAt is None:
-            friends.append(friend.toDict())
-        postable.update(friend.toPostData())
-
-    timeline = Post.query.filter_by(postedOnID=accID, deletedAt=None).order_by(Post.id.desc()).all()
-    processedTL = []
-    for pst in timeline:
-        processedTL.append(pst.process(myAcc.id))
-
-    likedPosts = []
-    likedReactions = []
-    for post in timeline:
-        for reaction in post.reactions:
-            if reaction.posterID == get_jwt_identity():
-                if reaction.deletedAt == None:
-                    likedPosts.append(post.id)
-                    likedReactions.append(reaction.id)
-
-    userReactions = {likedPosts[i]: likedReactions[i] for i in range(len(likedPosts))}\
-    
-    posts = []
-    numLikes = []
-    for post in timeline:
-        posts.append(post.id)
-        num_likes = 0
-        for reaction in post.reactions:
-            if reaction.deletedAt == None:
-                    num_likes = num_likes+1
-        numLikes.append(num_likes)
-
-    numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
-
-    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity(), userReactions=userReactions, likedPosts=likedPosts, numLikes=numLikes)
-
-
-@app.route('/friends')
-@jwt_required()
-def friendPage():
-    userAccID = get_jwt_identity()
-    acc = Account.query.filter_by(id=userAccID).first()
-
-    friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
-    pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
-    friendsProcessed = []
-    pendingProcessed = []
-
-    for f in friends:
-        friendsProcessed.append(f.toDict())
-    
-    for p in pending:
-        pendingProcessed.append(p.toDict())
-    
-    return render_template('friends.html', account = acc.toDict(), friends = friendsProcessed, pending = pendingProcessed)
-
-@app.route('/signup')
-def signUpPage():
-    return render_template('signup.html')
-
-@app.route('/settings')
-@jwt_required()
-def settingsPage():
-    userAccID = get_jwt_identity()
-    acc = Account.query.filter_by(id=userAccID).first()
-    return render_template('settings.html', account = acc.toDict())
 
 
 #Teardown (don't mess with this)
