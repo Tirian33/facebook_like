@@ -8,23 +8,13 @@ from models import *
 
 account_bp = Blueprint('account', __name__)
 
-#Account creation at default request
-@account_bp.route('/api/account', methods=['POST'])
-def makeAccount():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    fName = request.form.get('fName')
-    lName = request.form.get('lName')
-    public = request.form.get('public') == 'public'
+MAX_FILE_SIZE = 60000
+FILE_SIZE_ERR_MSG = "Maximum image file size is 40 KB."
 
-    if Account.query.filter_by(username=username).first() is not None:
-        abort(400)  #Username is already in use
-    acnt = Account(username, password, fName, lName, public)
-
-    # If an profile image is uploaded....
-    if len(request.files.getlist('profile-pic')) == 1 and request.files['profile-pic'].mimetype != 'application/octet-stream':
+def imageHandler(request, fileAccessor, account):
+    if len(request.files.getlist(fileAccessor)) == 1 and request.files[fileAccessor].mimetype != 'application/octet-stream':
         # Retrieve the image object
-        profile_pic = request.files['profile-pic']
+        profile_pic = request.files[fileAccessor]
         filename = secure_filename(profile_pic.filename)
         image = profile_pic.read()
         if len(image) < 60000:
@@ -39,31 +29,30 @@ def makeAccount():
             # Get the image id
             img_id = img.id
 
-            acnt.profileImageID = img_id
+            account.profileImageID = img_id
         else:
-            abort(400, "Maximum image file size is 40 KB.")
+            #File too large
+            print(len(image))
+            return False
+    
+    #Successful end
+    return True
 
-    if len(request.files.getlist('cover-pic')) == 1 and request.files['cover-pic'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        cover_pic = request.files['cover-pic']
-        
-        filename = secure_filename(cover_pic.filename)
-        image = cover_pic.read()
-        if len(image) < 60000:
+#Account creation at default request
+@account_bp.route('/api/account', methods=['POST'])
+def makeAccount():
+    username = request.form.get('username')
+    password = request.form.get('password')
+    fName = request.form.get('fName')
+    lName = request.form.get('lName')
+    public = request.form.get('public') == 'public'
 
-            mimetype = cover_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
+    if Account.query.filter_by(username=username).first() is not None:
+        abort(400)  #Username is already in use
+    acnt = Account(username, password, fName, lName, public)
 
-            # Get the image id
-            img_id = img.id
-
-            acnt.coverImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
+    if (not (imageHandler(request, 'profile-pic', acnt) and imageHandler(request, 'cover-pic', acnt))):
+        abort(400, FILE_SIZE_ERR_MSG)
     
     db.session.add(acnt)
     db.session.commit()
@@ -80,49 +69,8 @@ def updateAccountImages():
     if acnt is None:
         abort(404, "Your account does not exist.")
 
-    # If an profile image is uploaded....
-    if len(request.files.getlist('profile-image')) == 1 and request.files['profile-image'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        profile_pic = request.files['profile-image']
-        filename = secure_filename(profile_pic.filename)
-        image = profile_pic.read()
-        if len(image) < 60000:
-
-            mimetype = profile_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            acnt.profileImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
-
-    if len(request.files.getlist('cover-image')) == 1 and request.files['cover-image'].mimetype != 'application/octet-stream':
-        # Retrieve the image object
-        cover_pic = request.files['cover-image']
-        
-        filename = secure_filename(cover_pic.filename)
-        image = cover_pic.read()
-        if len(image) < 60000:
-
-            mimetype = cover_pic.mimetype
-            img = Img(img=image, mimetype=mimetype, name=filename)
-            
-            # Store the image object
-            db.session.add(img)
-            db.session.commit()
-
-            # Get the image id
-            img_id = img.id
-
-            acnt.coverImageID = img_id
-        else:
-            abort(400, "Maximum image file size is 40 KB.")
+    if (not (imageHandler(request, 'profile-pic', acnt) and imageHandler(request, 'cover-pic', acnt))):
+        abort(400, FILE_SIZE_ERR_MSG)
     
     db.session.add(acnt)
     db.session.commit()
