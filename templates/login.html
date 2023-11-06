@@ -1,6 +1,12 @@
 {% if redirectReason %}
 <div>
-  {{redirectReason}}
+  {% if redirectReason == "noTkn" %}
+    You must be signed in to access that page.
+  {% endif %}
+
+  {% if redirectReason == "tknExp" %}
+    Your token has expired you must log back in.
+  {% endif %}
 </div>
 {% endif %}
 

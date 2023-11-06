@@ -51,16 +51,13 @@ def canMakeContent(targetAccID, posterID):
 
 
 #ERROR HANDLING
-@app.errorhandler(401)
-def handle401(error):
-    print("INTERUPT")
+@jwt.unauthorized_loader
+def handleMissingToken(error):
+    print(error)
     if 'Missing cookie "access_token_cookie"' in str(error):
-        return redirect(url_for('login_route', redirectReason = "You must be signed in to access that page."))  #Was not signed in
-    elif 'Token has expired' in str(error):
-        return redirect(url_for('login_route', redirectReason = "Your token has expired. Please sign in again."))  #Token expired
-    response = jsonify(error=str(error))
-    response.status_code = 401
-    return response
+        return redirect(url_for('loginPage', redirectReason = "noTkn"))  #Was not signed in
+    
+    return redirect(url_for('loginPage', redirectReason = "tknExp"))  #Token expired
 
 @app.errorhandler(500)
 def handle500(error):
