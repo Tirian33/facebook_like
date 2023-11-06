@@ -178,7 +178,7 @@
                 fetch('/api/logout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ friendCode }), 
+                    body: JSON.stringify({ "content": "yes" }), 
                 }).then(function (res) {
                         if (res.status == 200) {
                             window.location.href = '/login';
