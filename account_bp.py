@@ -11,7 +11,7 @@ account_bp = Blueprint('account', __name__)
 MAX_FILE_SIZE = 60000
 FILE_SIZE_ERR_MSG = "Maximum image file size is 40 KB."
 
-def imageHandler(request, fileAccessor, account):
+def imageHandler(request, fileAccessor, imgTarget, account):
     if len(request.files.getlist(fileAccessor)) == 1 and request.files[fileAccessor].mimetype != 'application/octet-stream':
         # Retrieve the image object
         profile_pic = request.files[fileAccessor]
@@ -29,7 +29,10 @@ def imageHandler(request, fileAccessor, account):
             # Get the image id
             img_id = img.id
 
-            account.profileImageID = img_id
+            if imgTarget == 1:
+                account.profileImageID = img_id
+            else:
+                account.coverImageID = img_id
         else:
             #File too large
             print(len(image))
@@ -51,7 +54,7 @@ def makeAccount():
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
 
-    if (not (imageHandler(request, 'profile-pic', acnt) and imageHandler(request, 'cover-pic', acnt))):
+    if (not (imageHandler(request, 'profile-pic', 1, acnt) and imageHandler(request, 'cover-pic', 0, acnt))):
         abort(400, FILE_SIZE_ERR_MSG)
     
     db.session.add(acnt)
