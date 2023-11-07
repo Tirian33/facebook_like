@@ -28,6 +28,7 @@ def imageHandler(request, fileAccessor, imgTarget, account):
 
             # Get the image id
             img_id = img.id
+            print(img_id)
 
             if imgTarget == 1:
                 account.profileImageID = img_id
@@ -54,7 +55,7 @@ def makeAccount():
         abort(400)  #Username is already in use
     acnt = Account(username, password, fName, lName, public)
 
-    if (not (imageHandler(request, 'profile-pic', 1, acnt) and imageHandler(request, 'cover-pic', 0, acnt))):
+    if (not (imageHandler(request, 'profile-image', 1, acnt) and imageHandler(request, 'cover-image', 0, acnt))):
         abort(400, FILE_SIZE_ERR_MSG)
     
     db.session.add(acnt)
@@ -72,7 +73,7 @@ def updateAccountImages():
     if acnt is None:
         abort(404, "Your account does not exist.")
 
-    if (not (imageHandler(request, 'profile-pic', acnt) and imageHandler(request, 'cover-pic', acnt))):
+    if (not (imageHandler(request, 'profile-image', 1, acnt) and imageHandler(request, 'cover-image', 0, acnt))):
         abort(400, FILE_SIZE_ERR_MSG)
     
     db.session.add(acnt)
