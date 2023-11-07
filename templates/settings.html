@@ -13,7 +13,7 @@
     <div class="settings-container">
         <form>
             <div class="user-avatar">
-                {% if account.coverImageID != None %}
+                {% if account.profileImageID != None %}
                         <img src='/api/images/{{account.profileImageID}}'/>
                 {% else %}
                         <img src="/static/public/cover-page.jpg">
