@@ -10,7 +10,7 @@ pages_bp = Blueprint('pages', __name__)
 
 @pages_bp.route('/')
 def indexPage():
-    return redirect(url_for('loginPage'))
+    return redirect(url_for('pages.loginPage'))
 
 @pages_bp.route('/login')
 def loginPage():

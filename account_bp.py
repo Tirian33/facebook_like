@@ -49,11 +49,12 @@ def makeAccount():
     password = request.form.get('password')
     fName = request.form.get('fName')
     lName = request.form.get('lName')
+    bio = request.form.get('bio')
     public = request.form.get('public') == 'public'
 
     if Account.query.filter_by(username=username).first() is not None:
         abort(400)  #Username is already in use
-    acnt = Account(username, password, fName, lName, public)
+    acnt = Account(username, password, fName, lName, bio, public)
 
     if (not (imageHandler(request, 'profile-image', 1, acnt) and imageHandler(request, 'cover-image', 0, acnt))):
         abort(400, FILE_SIZE_ERR_MSG)
@@ -66,6 +67,18 @@ def makeAccount():
     
     return response
 
+@account_bp.route('/api/account/updateBio', methods=['POST'])
+@jwt_required()
+def updateAccountBio():
+    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
+    if acnt is None:
+        abort(404, "Your account does not exist.")
+
+    #TODO
+    
+    db.session.commit()
+    return "Okay", 200
+
 @account_bp.route('/api/account/updateImages', methods=['POST'])
 @jwt_required()
 def updateAccountImages():
@@ -76,7 +89,6 @@ def updateAccountImages():
     if (not (imageHandler(request, 'profile-image', 1, acnt) and imageHandler(request, 'cover-image', 0, acnt))):
         abort(400, FILE_SIZE_ERR_MSG)
     
-    db.session.add(acnt)
     db.session.commit()
     return "Okay", 200
 

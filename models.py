@@ -12,6 +12,7 @@ class Account(db.Model):
     passwordHash = db.Column(db.String(128))
     fName = db.Column(db.String(32), nullable=False)
     lName = db.Column(db.String(32), nullable=False)
+    bio = db.Column(db.String(400), nullable=True)
     profileImageID = db.Column(db.Integer, nullable=True)
     coverImageID = db.Column(db.Integer, nullable=True)
     isPublic = db.Column(db.Boolean, default=False)
@@ -48,11 +49,12 @@ class Account(db.Model):
         return True
 
 
-    def __init__(self, username, passwordUnhashed, first, last, public = False):
+    def __init__(self, username, passwordUnhashed, first, last, bio, public = False):
         self.username = username
         self.passwordHash = bcrypt.generate_password_hash(passwordUnhashed).decode('utf-8')
         self.fName = first
         self.lName = last
+        self.bio = bio
         self.isPublic = public
         while True:
             code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
