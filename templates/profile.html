@@ -16,6 +16,7 @@
             <div class="user-dropdown">
                 <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
                 <div class="user-dropdown-content" id="user-dropdown-content">
+                    <a href="/friends">View Friends</a>
                     <a href="/settings">Settings</a>
                     <a href="/" id="logout">Logout</a>
                 </div>
@@ -1001,13 +1002,14 @@ hr {
     top: 0; 
     left: 0;
     width: 100%;
-    height: 60px; 
+    height: 75px; 
     z-index: 1; 
-    border-radius: 15px 15px 15px 15px;
+    border-radius: 1px 15px 15px 15px;
 
 }
 
 .user-avatar {
+    border: 2px solid #555;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -1030,6 +1032,7 @@ hr {
     background: none;
     border: none;
     cursor: pointer;
+    height: 5px;
     color: #fff;
     font-weight: bold;
 }
@@ -1041,7 +1044,8 @@ hr {
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
-    right: 30;
+    right: 0;
+    left:30;
     border-radius: 15px 15px 15px 15px;
 }
 
