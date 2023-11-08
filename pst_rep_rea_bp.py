@@ -34,6 +34,9 @@ def softDeleteObjects(listing) -> None:
 @pst_rep_rea_bp.route('/api/post', methods=['POST'])
 @jwt_required()
 def makePost():
+
+    print(request.form.get('textContent'))
+
     if ((request.form.get('textContent') is None and request.form.get('sharedPostId')is None) or request.form.get('postedOnID') is None):
         abort(400, "Invalid request recieved.")
 
@@ -53,7 +56,6 @@ def makePost():
     # If there is only one image attachment...
     if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
 
-        
         # Retrieve the image object
         pic = request.files['pic']
         

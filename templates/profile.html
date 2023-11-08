@@ -107,8 +107,33 @@
                         </div>
                         {% endif %}
                     </div> 
+                 
                 </div>
-                        
+
+                {% if post.sharedPostID != 0 %}
+                <div class="post-content">
+                    <div class="post-header-text">
+                        <div class="post-poster">
+                        <span>{{postable[post.posterID]}}</span>
+                        </div>
+                        {% if post.createdAt %}
+                        <div class="post-datetime">
+                        <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                        </div>
+                        {% endif %}
+                    </div> 
+                    <div class="post-text">
+                    <span>{{post.textContent}}</span>
+                    </div>
+                    {% if post.associatedImageID != None %}
+                    <div>
+                        <img src='/api/images/{{post.associatedImageID}}' class="imghandle"/>
+                        <span></span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% else %} 
                 <div class="post-content">
                     <div class="post-text">
                     <span>{{post.textContent}}</span>
@@ -120,8 +145,8 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
                 
-
                 <div class="post-response">
                     <div>
                         {% if likedPosts.count(post.id) > 0 %}
@@ -130,7 +155,7 @@
                             <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
                             <button class="like-button" type="submit" style="background-color: rgb(207, 245, 212);transform: scale(1.2)">
                         {% else %}
-                        <form  class="likeForm", id="{{post.id}}", user-already-liked="False">
+                        <form  class="likeForm", id="{{ post.id }}", user-already-liked="False">
                             <input type="text" id="reactionType" value={{1}} name="reactionType" style="display: none;">
                             <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
                             <button class="like-button" type="submit">
@@ -189,8 +214,10 @@
 
                     <div>
                         <form  class="shareForm", id="{{post.id}}">
-                            <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
-                            <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
+                            <input type="text" name="textContent" value="{{post.textContent}}", id="textContent" style="display: none;">
+                            <input type="text" name="associatedImageID"  value={{post.associatedImageID}} id="username" style="display: none;">
+                            <input type="text" id="sharedPostId" name="sharedPostId" value="{{pageOwner}}" style="display: none;">
+                            <input type="text" id="postedOnID" value= {{user.id}} name="postedOnID" style="display: none;">
                             <button class="share-button" type="submit">
                                 <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
                                 viewBox="0 0 227.216 227.216" xml:space="preserve">
@@ -212,7 +239,7 @@
                             </button>
                         </form>
                     </div>
-                    
+
                     {% if (post.posterID == user.id) or (pageOwner == user.id) %}
                     <div>
                         <form  class="editForm", id="{{ post.id }}">
@@ -429,6 +456,32 @@
             } else {
                     console.log(res);
                     alert('You do not have permission to delete this post.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+        var shareForms = document.querySelectorAll(".shareForm");
+
+        shareForms.forEach((shareForm) => {share_post(shareForm)});
+
+        function share_post(shareForm) {
+        shareForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(shareForm);
+            
+
+            fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('There was an error in sharing this post.');
                 }
             }).catch(err => {
                 console.error("Error occured.")
