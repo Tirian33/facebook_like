@@ -186,7 +186,7 @@
                             </button>
                         </form>
                     </div>
-                    {% if (post.posterID == user) or (pageOwner == user) %}
+                    {% if (post.posterID == user.id) or (pageOwner == user.id) %}
                     <div>
                         <form  class="editForm", id="{{ post.id }}">
                             <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
