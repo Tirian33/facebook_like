@@ -7,14 +7,14 @@
         <!-- User Account Dropdown -->
         <div class="user-account">
             <div class="user-avatar">
-                {% if account.profileImageID != None %}
-                        <img src="/api/images/{{account.profileImageID}}" alt="">
+                {% if user.profileImageID != None %}
+                        <img src="/api/images/{{user.profileImageID}}" alt="">
                         {% else %}
                         <img src="static/public/profile.png" alt="">
                         {% endif %}
             </div>
             <div class="user-dropdown">
-                <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
+                <button class="user-dropdown-button" id="user-dropdown-button">{{user.username}}</button>
                 <div class="user-dropdown-content" id="user-dropdown-content">
                     <a href="/settings">Settings</a>
                     <a href="/" id="logout">Logout</a>
@@ -91,8 +91,8 @@
             <div class="postinfo">
                 <div class="post-header">
                     <div class="post-profile">
-                        {% if account.profileImageID != None %}
-                        <img src='/api/images/{{account.profileImageID}}' class="mini-profile"/>
+                        {% if posterAccts[post.id].profileImageID != None %}
+                        <img src='/api/images/{{posterAccts[post.id].profileImageID}}' class="mini-profile"/>
                             {% else %}
                             <img src="/static/public/profile.png" class="mini-profile"/>    
                         {% endif %}
@@ -266,8 +266,8 @@
                     <div class="reply">
                         <div class="reply-header">
                             <div class="reply-profile">
-                                {% if account.profileImageID != None %}
-                                <img src='/api/images/{{account.profileImageID}}' class='mini-profile'/>
+                                {% if replyAccts[reply.id].profileImageID != None %}
+                                <img src='/api/images/{{replyAccts[reply.id].profileImageID}}' class='mini-profile'/>
                                 {% else %}
                                 <img src="/static/public/profile.png" class='mini-profile'/>    
                                 {% endif %}

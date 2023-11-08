@@ -67,8 +67,23 @@ def homePage():
         numLikes.append(num_likes)
 
     numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
+
+    posts = []
+    posterAccts = []
+    replies = []
+    replyAccts = []
+    for post in timeline:
+        posts.append(post.id)
+        posterAccts.append(Account.query.filter_by(id=post.posterID).first())
+        for reply in post.replies:
+            replies.append(reply.id)
+            replyAccts.append(Account.query.filter_by(id=reply.posterID).first())
+
+    posterAccts = {posts[i]: posterAccts[i] for i in range(len(posts))}
+    replyAccts = {replies[i]: replyAccts[i] for i in range(len(replies))}
+    
    
-    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = userAccID, likedPosts = likedPosts, userReactions=userReactions, numLikes=numLikes)
+    return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = timeline, postable=postable, pageOwner=userAccID, user = acc, likedPosts = likedPosts, userReactions=userReactions, numLikes=numLikes, posterAccts=posterAccts, replyAccts=replyAccts)
 
 @pages_bp.route('/timeline/<int:accID>')
 @jwt_required()
@@ -125,7 +140,23 @@ def timeline(accID):
 
     numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
 
-    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=get_jwt_identity(), userReactions=userReactions, likedPosts=likedPosts, numLikes=numLikes)
+    posts = []
+    posterAccts = []
+    replies = []
+    replyAccts = []
+    for post in timeline:
+        posts.append(post.id)
+        posterAccts.append(Account.query.filter_by(id=post.posterID).first())
+        for reply in post.replies:
+            replies.append(reply.id)
+            replyAccts.append(Account.query.filter_by(id=reply.posterID).first())
+
+    posterAccts = {posts[i]: posterAccts[i] for i in range(len(posts))}
+    replyAccts = {replies[i]: replyAccts[i] for i in range(len(replies))}
+
+    
+
+    return render_template('profile.html', account = targetAcc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=accID, user=myAcc, userReactions=userReactions, likedPosts=likedPosts, numLikes=numLikes, posterAccts=posterAccts, replyAccts=replyAccts)
 
 
 @pages_bp.route('/friends')
