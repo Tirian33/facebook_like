@@ -40,6 +40,9 @@ def imageHandler(request, fileAccessor, imgTarget, account):
             return False
     
     #Successful end
+    print(fileAccessor, imgTarget)
+    print(account.profileImageID)
+    print(account.coverImageID)
     return True
 
 #Account creation at default request
@@ -74,7 +77,7 @@ def updateAccountBio():
     if acnt is None:
         abort(404, "Your account does not exist.")
 
-    #TODO
+    acnt.bio = request.form.get('new-bio')
     
     db.session.commit()
     return "Okay", 200
