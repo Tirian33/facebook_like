@@ -20,7 +20,7 @@
                 {% endif %}
                 <h3 class="profile-name">{{account.username}}</h3>
             </div>
-            </form>
+        </form>
     <form method="POST" action="/api/account/updateImages" class="updateImages" enctype="multipart/form-data"  id = "IMG">
 
             <label for="profile-image">Change Profile Image:</label>
@@ -29,8 +29,15 @@
             <input type="file" id="cover-image" name="cover-image">
             <button id="save-profile-cover-img-button">Update Images</button>
            
-    </form>      
-  <form method="POST" action="/api/account/updatePassword" class="updatePassword" enctype="multipart/form-data"  id = "PW">
+    </form>
+    <form method="POST" action="/api/account/updateBio" class="updateBio" enctype="multipart/form-data"  id = "IMG">
+
+        <label for="new-bio">Bio:</label>
+        <input type="text" id="new-bio" name="new-bio" value="{{account.bio}}">
+        <button id="save-bio-button">Update Bio</button>
+       
+    </form>  
+    <form method="POST" action="/api/account/updatePassword" class="updatePassword" enctype="multipart/form-data"  id = "PW">
 
             <label for="current-password">Current Password:</label>
             <input type="password" id="current-password" name="current-password" placeholder="Current password">
@@ -88,6 +95,34 @@
                 console.error('Error:', error);
             });
         }});
+
+        //save-bio
+        document.getElementById("save-bio-button").addEventListener("click", function() {
+
+            //Prevent normal unhandled submit
+            event.preventDefault();
+
+            var Data = new FormData(document.querySelector('.updateBio'));
+
+            fetch('/api/account/updateBio', {
+                method: 'POST',
+                headers: {},
+                body: Data,
+            }).then(function(res)
+                {
+                console.log(res);
+                // Handle the server's response, e.g., show a success message or error message
+                if (res.status == 200) {
+                    alert("Your Bio was updated successfully!");
+                    window.location.href = '/profile';
+                } else {
+                    alert("Bio update failed.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+            });
 
         //save-profile-cover-img-button
         document.getElementById("save-profile-cover-img-button").addEventListener("click", function() {
@@ -220,5 +255,19 @@ button#save-profile-cover-img-button:hover {
     background-color: #1659a3; /* Darker blue on hover */
 }
 
+button#save-bio-button {
+    background-color: #1877f2; 
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button#save-bio-button:hover {
+    background-color: #1659a3; /* Darker blue on hover */
+}
 
 </style>

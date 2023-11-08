@@ -28,6 +28,7 @@ class Account(db.Model):
             'username' : self.username,
             'fName' : self.fName,
             'lName' : self.lName,
+            'bio' : self.bio,
             'isPublic' : self.isPublic,
             'friendCode' : self.friendCode,
             'profileImageID': self.profileImageID,
