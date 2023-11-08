@@ -39,6 +39,7 @@ class Account(db.Model):
     def toPostData(self):
         data = {}
         data[self.id] = self.fName + " " + self.lName
+        data[str(self.id) + "-p"] = self.profileImageID
         return data
     
     def changePW(self, oldPW, newPW):
@@ -76,10 +77,11 @@ class Post(db.Model):
     editedAt = db.Column(db.DateTime)
     deletedAt = db.Column(db.DateTime)
 
-    def process(self, callerAccId):
+    def process(self, callerAccId, callerFriends = None):
         userReacted = False
         sharedPostTxt = ""
         sharedPostImg = ""
+        sharedPostedOn = None
 
         for react in self.reactions:
             if react.posterID == callerAccId:
@@ -87,8 +89,10 @@ class Post(db.Model):
 
         if self.sharedPostID is not None and self.sharedPostID != 0:
             targPst = Post.query.filter_by(id=self.sharedPostID).first()
-            sharedPostTxt = targPst.textContent
-            sharedPostImg = targPst.associatedImageID
+            if self.posterID == callerAccId or (targPst.id is not None and (callerFriends is None or targPst.id in callerFriends)):
+                sharedPostTxt = targPst.textContent
+                sharedPostImg = targPst.associatedImageID
+                sharedPostedOn = targPst.postedOnID
 
         dictForm = {
             'id' : self.id,
@@ -104,6 +108,7 @@ class Post(db.Model):
             'userReacted' : userReacted,
             'sharedPostTxt' : sharedPostTxt,
             'sharedPostImgId' : sharedPostImg,
+            'sharedPostAccId' : sharedPostedOn
         }
 
         return dictForm
