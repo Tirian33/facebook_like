@@ -68,7 +68,7 @@
                     </div>
                     <input type="text" name="textContent" placeholder="What's on your mind?" id="username" required>
                     <input type="text" id="sharedPostId" name="sharedPostId" value="None" style="display: none;"><br>
-                    <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                    <input type="text" id="postedOnID" value={{pageOwner}} name="postedOnID" style="display: none;">
                     <input type="file" id="actual-btn" name="pic"/>
                     <input type="submit" value="Create Post", id="loginButton">
                   </div>
@@ -230,7 +230,8 @@
                         </form>
                     </div>
                     
-                    {% if (post.posterID != user.id) %}
+                    {% if account.id != user.id %}
+                    {% if post.posterID != user.id %}
                     <div>
                         <form  class="shareForm", id="{{post.id}}">
                             <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.id}}" style="display: none;">
@@ -279,6 +280,7 @@
                             </svg>
                         </button>
                     </div>
+                    {% endif %}
                     {% endif %}
 
                     {% if (post.posterID == user.id) or (pageOwner == user.id) %}
