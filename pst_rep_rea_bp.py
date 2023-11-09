@@ -35,7 +35,6 @@ def softDeleteObjects(listing) -> None:
 @jwt_required()
 def makePost():
 
-    print(request.form.get('textContent'))
 
     if ((request.form.get('textContent') is None and request.form.get('sharedPostId')is None) or request.form.get('postedOnID') is None):
         abort(400, "Invalid request recieved.")
@@ -52,7 +51,7 @@ def makePost():
         abort(400, "You are not friends. You cannot post")
     
     newPost = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'))
-   
+    
     # If there is only one image attachment...
     if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
 

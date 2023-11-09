@@ -82,6 +82,8 @@ class Post(db.Model):
         sharedPostTxt = ""
         sharedPostImg = ""
         sharedPostedOn = None
+        sharedPostCreatedAt = None
+        sharedPostUsername = ""
 
         for react in self.reactions:
             if react.posterID == callerAccId:
@@ -89,10 +91,11 @@ class Post(db.Model):
 
         if self.sharedPostID is not None and self.sharedPostID != 0:
             targPst = Post.query.filter_by(id=self.sharedPostID).first()
-            if self.posterID == callerAccId or (targPst.id is not None and (callerFriends is None or targPst.id in callerFriends)):
+            if self.posterID == callerAccId or targPst.posterID == callerAccId or (targPst.id is not None and (callerFriends is None or targPst.posterID in callerFriends)):
                 sharedPostTxt = targPst.textContent
                 sharedPostImg = targPst.associatedImageID
                 sharedPostedOn = targPst.postedOnID
+                sharedPostCreatedAt =  targPst.createdAt
 
         dictForm = {
             'id' : self.id,
@@ -108,7 +111,8 @@ class Post(db.Model):
             'userReacted' : userReacted,
             'sharedPostTxt' : sharedPostTxt,
             'sharedPostImgId' : sharedPostImg,
-            'sharedPostAccId' : sharedPostedOn
+            'sharedPostAccId' : sharedPostedOn,
+            'sharedPostCreatedAt' : sharedPostCreatedAt
         }
 
         return dictForm
