@@ -87,6 +87,7 @@
 
     {% for post in timeline %}
     &nbsp
+    {% if ((postable[post.sharedPostID] == None) or (postable[post.sharedPostAccId])) %}
     <body>
         <div class="postcard">
             <div class="postinfo">
@@ -112,7 +113,7 @@
 
                
                 <!-- Shared post render -->
-                {% if post.sharedPostID %}
+                {% if postable[post.sharedPostAccId] != None %}
                 <div style="margin-left: 40px">
                     <span>Shared the following post:</span>
                 </div>
@@ -300,8 +301,6 @@
                     </div>
                     
                 </div>
-                
-
             </div>
 
             {% if post.replies %}
@@ -362,6 +361,7 @@
             </form>
         </div>
     </body>
+    {% endif %}
     {% endfor %}
     
     <script>
