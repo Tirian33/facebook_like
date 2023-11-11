@@ -8,13 +8,38 @@
     </header>
      <!-- User Account Dropdown -->
      <div class="user-account">
-        <div class="user-avatar">
-            {% if account.profileImageID != None %}
-                    <img src="/api/images/{{account.profileImageID}}" alt="" >
-                    {% else %}
-                    <img src="static/public/profile.png" alt="" >
-                    {% endif %}
-           <!-- <img src="static/public/strawberry.jpg" alt=""> -->
+        <div class="user-avatars">
+            <div class="user-avatar">
+                <a href="/profile"><img src="static/public/logo.png" alt="" ></a>
+            <!-- <img src="static/public/strawberry.jpg" alt=""> -->
+            </div>
+
+             <!-- Links with icons for Home, Friends, and Settings -->
+             <a href="/profile" class="user-link">
+                <span class="icon home-icon"></span>
+                Home
+            </a>
+        
+            <!-- Friends Icon -->
+            <a href="/friends" class="user-link">
+                <span class="icon friends-icon"></span>
+                Friends
+            </a>
+        
+            <!-- Settings Icon -->
+            <a href="/settings" class="user-link">
+                <span class="icon settings-icon"></span>
+                Settings
+            </a>
+
+            <div class="user-avatar user-avatar-right">
+                <!--  second user-avatar content here -->
+                {% if account.profileImageID != None %}
+                        <img src="/api/images/{{account.profileImageID}}" alt="" >
+                        {% else %}
+                        <img src="static/public/profile.png" alt="" >
+                        {% endif %}
+            </div>
         </div>
         <div class="user-dropdown">
             <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
@@ -64,12 +89,14 @@
             <ul class="pending-requests-list">
                 {% for pending in pending %}
                 <li>
-                    {% if pending.profileImageID != None %}
+                    {% if pending.profileImageID != None %}            
                     <img src="/api/images/{{pending.profileImageID}}" alt="" class="'mini-profile">
                     {% else %}
                     <img src="static/public/profile.png" alt="" class="'mini-profile">
                     {% endif %}
+                    <a href="/timeline/{{pending.id}}"></a>
                     <p>{{pending.username}}</p>
+                    </a>
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
                         <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Decline</button>
@@ -505,11 +532,27 @@
     position: fixed; 
     top: 0; 
     left: 0;
-    width: 100%;
+    width: 98%;
     height: 60px; 
     z-index: 1; 
     border-radius: 1px 15px 15px 15px;
 
+}
+
+.user-avatars {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.user-avatar-right {
+    margin-left: auto;
+}
+
+.user-avatar-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .user-avatar {
@@ -535,8 +578,45 @@
     object-fit: cover;
 } 
 
+.user-link {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.user-link .icon {
+    margin-right: 5px; /* Adjust the margin as needed */
+}
+
+/* Adjust the icon style as needed */
+.icon {
+    display: inline-block;
+    width: 20px; /* Adjust the width as needed */
+    height: 20px; /* Adjust the height as needed */
+    border-radius: 50%; /* Use this for a circular icon */
+    background-size: cover;
+    background-position: center;
+}
+
+.home-icon {
+    background-image: url('static/public/home-icon.png'); /* Replace with the path to your home icon image */
+}
+
+.friends-icon {
+    background-image: url('static/public/friends-icon.png'); /* Replace with the path to your friends icon image */
+}
+
+.settings-icon {
+    background-image: url('static/public/settings-icon.png'); /* Replace with the path to your settings icon image */
+}
+
 .user-dropdown {
     position: absolute;
+    right: 25px;
 }
 
 .user-dropdown-button {
@@ -555,7 +635,7 @@
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
-    right: 30;
+    right: 0;
     border-radius: 15px 15px 15px 15px;
 }
 
