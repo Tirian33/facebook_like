@@ -10,7 +10,7 @@
                 {% if user.profileImageID != None %}
                         <img src="/api/images/{{user.profileImageID}}" alt="">
                         {% else %}
-                        <img src="static/public/profile.png" alt="">
+                        <img src="/static/public/profile.png" alt="">
                         {% endif %}
             </div>
             <div class="user-dropdown">
@@ -57,6 +57,7 @@
     </body>
 
     &nbsp
+   
     <body>
         <div class="profilecard">
             <form method="POST" action="/api/post" enctype="multipart/form-data" id="postForm">
@@ -67,7 +68,7 @@
                     </div>
                     <input type="text" name="textContent" placeholder="What's on your mind?" id="username" required>
                     <input type="text" id="sharedPostId" name="sharedPostId" value="None" style="display: none;"><br>
-                    <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                    <input type="text" id="postedOnID" value={{pageOwner}} name="postedOnID" style="display: none;">
                     <input type="file" id="actual-btn" name="pic"/>
                     <input type="submit" value="Create Post", id="loginButton">
                   </div>
@@ -85,15 +86,16 @@
     </body>
 
 
-    {%for post in timeline %}
+    {% for post in timeline %}
+    {% if (postable[post.posterID]) or ((postable[post.sharedPostID] == None) or (postable[post.sharedPostAccId])) %}
     &nbsp
     <body>
         <div class="postcard">
             <div class="postinfo">
                 <div class="post-header">
                     <div class="post-profile">
-                        {% if posterAccts[post.id].profileImageID != None %}
-                        <img src='/api/images/{{posterAccts[post.id].profileImageID}}' class="mini-profile"/>
+                        {% if postable[post.posterID|string + "-p"] != None %}
+                        <img src='/api/images/{{postable[post.posterID|string + "-p"]}}' class="mini-profile"/>
                             {% else %}
                             <img src="/static/public/profile.png" class="mini-profile"/>    
                         {% endif %}
@@ -109,7 +111,46 @@
                         {% endif %}
                     </div> 
                 </div>
-                        
+
+               
+                <!-- Shared post render -->
+                {% if post.sharedPostID %}
+                <div style="margin-left: 40px">
+                    <span>Shared the following post:</span>
+                </div>
+                <div class="postinfo" style="border: 1px solid grey; border-radius:20px">
+                    <div class="post-header">
+                        <div class="post-profile">
+                            {% if postable[post.sharedPostAccId|string + "-p"] != None %}
+                            <img src='/api/images/{{postable[post.sharedPostAccId|string + "-p"]}}' class="mini-profile"/>
+                                {% else %}
+                                <img src="/static/public/profile.png" class="mini-profile"/>    
+                            {% endif %}
+                        </div>
+                        <div class="post-header-text">
+                            <div class="post-poster">
+                            <span>{{postable[post.sharedPostAccId]}}</span>
+                            </div>
+                            {% if post.sharedPostCreatedAt %}
+                            <div class="post-datetime">
+                            <span> {{ post.sharedPostCreatedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                            </div>
+                            {% endif %}
+                        </div> 
+                    </div>
+                <div class="post-content" style="border:None">
+                    <div class="post-text">
+                    <span>{{post.sharedPostTxt}}</span>
+                    </div>
+                    {% if post.sharedPostImgId != None %}
+                    <div>
+                        <img src='/api/images/{{post.sharedPostImgId}}' class="imghandle"/>
+                        <span></span>
+                    </div>
+                    {% endif %}
+                </div>
+                </div>
+                {% else %}
                 <div class="post-content">
                     <div class="post-text">
                     <span>{{post.textContent}}</span>
@@ -121,8 +162,9 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
+        
                 
-
                 <div class="post-response">
                     <div>
                         {% if likedPosts.count(post.id) > 0 %}
@@ -131,7 +173,7 @@
                             <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
                             <button class="like-button" type="submit" style="background-color: rgb(207, 245, 212);transform: scale(1.2)">
                         {% else %}
-                        <form  class="likeForm", id="{{post.id}}", user-already-liked="False">
+                        <form  class="likeForm", id="{{ post.id }}", user-already-liked="False">
                             <input type="text" id="reactionType" value={{1}} name="reactionType" style="display: none;">
                             <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
                             <button class="like-button" type="submit">
@@ -187,11 +229,13 @@
                             </button>
                         </form>
                     </div>
-
+                    
+                    {% if account.id != user.id %}
+                    {% if post.posterID != user.id %}
                     <div>
                         <form  class="shareForm", id="{{post.id}}">
-                            <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
-                            <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
+                            <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.id}}" style="display: none;">
+                            <input type="text" id="postedOnID" value= {{user.id}} name="postedOnID" style="display: none;">
                             <button class="share-button" type="submit">
                                 <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
                                 viewBox="0 0 227.216 227.216" xml:space="preserve">
@@ -213,7 +257,32 @@
                             </button>
                         </form>
                     </div>
-                    
+
+                    {% else %}
+                    <div>
+                        <button class="share-button" type="submit" style="background-color: rgb(245, 237, 207);transform: scale(1.2)">
+                            <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                            viewBox="0 0 227.216 227.216" xml:space="preserve">
+                                <g>
+                                    <g>
+                                        <path d="M175.897,141.476c-13.249,0-25.11,6.044-32.98,15.518l-51.194-29.066c1.592-4.48,2.467-9.297,2.467-14.317
+                                                c0-5.019-0.875-9.836-2.467-14.316l51.19-29.073c7.869,9.477,19.732,15.523,32.982,15.523c23.634,0,42.862-19.235,42.862-42.879
+                                                C218.759,19.229,199.531,0,175.897,0C152.26,0,133.03,19.229,133.03,42.865c0,5.02,0.874,9.838,2.467,14.319L84.304,86.258
+                                                c-7.869-9.472-19.729-15.514-32.975-15.514c-23.64,0-42.873,19.229-42.873,42.866c0,23.636,19.233,42.865,42.873,42.865
+                                                c13.246,0,25.105-6.042,32.974-15.513l51.194,29.067c-1.593,4.481-2.468,9.3-2.468,14.321c0,23.636,19.23,42.865,42.867,42.865
+                                                c23.634,0,42.862-19.23,42.862-42.865C218.759,160.71,199.531,141.476,175.897,141.476z M175.897,15
+                                                c15.363,0,27.862,12.5,27.862,27.865c0,15.373-12.499,27.879-27.862,27.879c-15.366,0-27.867-12.506-27.867-27.879
+                                                C148.03,27.5,160.531,15,175.897,15z M51.33,141.476c-15.369,0-27.873-12.501-27.873-27.865c0-15.366,12.504-27.866,27.873-27.866
+                                                c15.363,0,27.861,12.5,27.861,27.866C79.191,128.975,66.692,141.476,51.33,141.476z M175.897,212.216
+                                                c-15.366,0-27.867-12.501-27.867-27.865c0-15.37,12.501-27.875,27.867-27.875c15.363,0,27.862,12.505,27.862,27.875
+                                                C203.759,199.715,191.26,212.216,175.897,212.216z"/>
+                                </g>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+
                     {% if (post.posterID == user.id) or (pageOwner == user.id) %}
                     <div>
                         <form  class="editForm", id="{{ post.id }}">
@@ -270,8 +339,9 @@
                     <div class="reply">
                         <div class="reply-header">
                             <div class="reply-profile">
-                                {% if replyAccts[reply.id].profileImageID != None %}
-                                <img src='/api/images/{{replyAccts[reply.id].profileImageID}}' class='mini-profile'/>
+                                {% if postable[reply.posterID|string + "-p"] != None %}
+                                <img src='/api/images/{{postable[reply.posterID|string + "-p"]}}' class='mini-profile'/>
+                               
                                 {% else %}
                                 <img src="/static/public/profile.png" class='mini-profile'/>    
                                 {% endif %}
@@ -321,6 +391,7 @@
             </form>
         </div>
     </body>
+    {% endif %}
     {% endfor %}
     
     <script>
@@ -430,6 +501,32 @@
             } else {
                     console.log(res);
                     alert('You do not have permission to delete this post.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+        var shareForms = document.querySelectorAll(".shareForm");
+
+        shareForms.forEach((shareForm) => {share_post(shareForm)});
+
+        function share_post(shareForm) {
+        shareForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(shareForm);
+            
+
+            fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('There was an error in sharing this post.');
                 }
             }).catch(err => {
                 console.error("Error occured.")
