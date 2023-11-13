@@ -101,9 +101,16 @@
                         {% endif %}
                     </div>
                     <div class="post-header-text">
+                        {% if post.posterID == user.id %}
                         <div class="post-poster">
-                        <span>{{postable[post.posterID]}}</span>
+                            <a href="/profile" style="color:black" class="btn">{{postable[post.posterID]}}</a>
                         </div>
+                        {% else %}
+                        <div class="post-poster">
+                            <a href="/timeline/{{post.posterID}}" style="color:black" class="btn">{{postable[post.posterID]}}</a>
+                        </div>
+                        {% endif %}
+                        
                         {% if post.createdAt %}
                         <div class="post-datetime">
                         <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
@@ -123,17 +130,17 @@
                         <div class="post-profile">
                             {% if postable[post.sharedPostAccId|string + "-p"] != None %}
                             <img src='/api/images/{{postable[post.sharedPostAccId|string + "-p"]}}' class="mini-profile"/>
-                                {% else %}
-                                <img src="/static/public/profile.png" class="mini-profile"/>    
+                            {% else %}
+                            <img src="/static/public/profile.png" class="mini-profile"/>    
                             {% endif %}
                         </div>
                         <div class="post-header-text">
                             <div class="post-poster">
-                            <span>{{postable[post.sharedPostAccId]}}</span>
+                                <a href="/timeline/{{post.sharedPostAccId}}" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
                             </div>
                             {% if post.sharedPostCreatedAt %}
                             <div class="post-datetime">
-                            <span> {{ post.sharedPostCreatedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                                <span> {{ post.sharedPostCreatedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
                             </div>
                             {% endif %}
                         </div> 
@@ -740,6 +747,13 @@
     
 }
 
+a {
+    height: 10px;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 .profileinfo>span:nth-of-type(2) {
     font-size: 18;
 
@@ -769,15 +783,16 @@
 
 .post-poster {
     font-size: 18;
-    margin-top: 30px;
+    margin-top: 13px;
     margin-left: 5px;
+    margin-bottom: 4px;
     font-weight: bold;
 }
 
 .post-datetime {
     font-size: 12;
     margin-top: 0%;
-    margin-left: 5px;
+    margin-left: 20px;
 }
 
 .post-content {
