@@ -148,16 +148,21 @@ def friendPage():
 
     friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
     pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
+    blocked = friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.isFriendRelation == False) & (Relationship.deletedAt == None)).all()
     friendsProcessed = []
     pendingProcessed = []
+    blocked_processed = []
 
     for f in friends:
         friendsProcessed.append(f.toDict())
     
     for p in pending:
         pendingProcessed.append(p.toDict())
+
+    for b in blocked:
+        blocked_processed.append(p.toDict())
     
-    return render_template('friends.html', account = acc.toDict(), friends = friendsProcessed, pending = pendingProcessed)
+    return render_template('friends.html', account = acc.toDict(), friends = friendsProcessed, pending = pendingProcessed, blocked = blocked_processed)
 
 @pages_bp.route('/signup')
 def signUpPage():
