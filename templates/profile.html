@@ -1,6 +1,5 @@
 <html>
     <head>
-        <link rel="stylesheet" href="profile.css">
         <title>{{account['fName']}} {{account['lName']}}'s Profile</title>
     </head>
     <body>
@@ -75,14 +74,6 @@
                 </div>
               </form>
         </div>
-        <div id="edit-popup" class="popup">
-            <div class="popup-content">
-                <span class="close" id="close-edit-popup">&times;</span>
-                <h2>Send a Message to <span id="message-popup-username"></span></h2>
-                <textarea id="message-text" placeholder="Type your message here..."style="width: 305px; height: 112px;"></textarea>
-                <button id="send-message-button">Send</button>
-            </div>
-        </div>
     </body>
 
 
@@ -111,9 +102,14 @@
                         </div>
                         {% endif %}
                         
-                        {% if post.createdAt %}
+                        {% if (post.createdAt) and (post.editedAt == None) %}
                         <div class="post-datetime">
                         <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                        </div>
+
+                        {% elif post.editedAt %}
+                        <div class="post-datetime">
+                        <span> Edited at {{ post.editedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
                         </div>
                         {% endif %}
                     </div> 
@@ -301,30 +297,27 @@
 
                     {% if (post.posterID == user.id) or (pageOwner == user.id) %}
                     <div>
-                        <form  class="editForm", id="{{ post.id }}">
-                            <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
-                            <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
-                            <button class="edit-button" type="submit" data-post-id="{{post.id}}" data-popup-id="edit-popup">
-                                <svg class="svg2" fill="#0056b3" stroke-width="1" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-                                    width="25" height="25" viewBox="0 0 494.936 494.936"
-                                    xml:space="preserve">
+                   
+                        <button class="edit-button" type="submit" id="{{post.id}}">
+                            <svg class="svg2" fill="#0056b3" stroke-width="1" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                                width="25" height="25" viewBox="0 0 494.936 494.936"
+                                xml:space="preserve">
+                            <g>
                                 <g>
-                                    <g>
-                                        <path d="M389.844,182.85c-6.743,0-12.21,5.467-12.21,12.21v222.968c0,23.562-19.174,42.735-42.736,42.735H67.157
-                                            c-23.562,0-42.736-19.174-42.736-42.735V150.285c0-23.562,19.174-42.735,42.736-42.735h267.741c6.743,0,12.21-5.467,12.21-12.21
-                                            s-5.467-12.21-12.21-12.21H67.157C30.126,83.13,0,113.255,0,150.285v267.743c0,37.029,30.126,67.155,67.157,67.155h267.741
-                                            c37.03,0,67.156-30.126,67.156-67.155V195.061C402.054,188.318,396.587,182.85,389.844,182.85z"/>
-                                        <path d="M483.876,20.791c-14.72-14.72-38.669-14.714-53.377,0L221.352,229.944c-0.28,0.28-3.434,3.559-4.251,5.396l-28.963,65.069
-                                            c-2.057,4.619-1.056,10.027,2.521,13.6c2.337,2.336,5.461,3.576,8.639,3.576c1.675,0,3.362-0.346,4.96-1.057l65.07-28.963
-                                            c1.83-0.815,5.114-3.97,5.396-4.25L483.876,74.169c7.131-7.131,11.06-16.61,11.06-26.692
-                                            C494.936,37.396,491.007,27.915,483.876,20.791z M466.61,56.897L257.457,266.05c-0.035,0.036-0.055,0.078-0.089,0.107
-                                            l-33.989,15.131L238.51,247.3c0.03-0.036,0.071-0.055,0.107-0.09L447.765,38.058c5.038-5.039,13.819-5.033,18.846,0.005
-                                            c2.518,2.51,3.905,5.855,3.905,9.414C470.516,51.036,469.127,54.38,466.61,56.897z"/>
-                                    </g>
+                                    <path d="M389.844,182.85c-6.743,0-12.21,5.467-12.21,12.21v222.968c0,23.562-19.174,42.735-42.736,42.735H67.157
+                                        c-23.562,0-42.736-19.174-42.736-42.735V150.285c0-23.562,19.174-42.735,42.736-42.735h267.741c6.743,0,12.21-5.467,12.21-12.21
+                                        s-5.467-12.21-12.21-12.21H67.157C30.126,83.13,0,113.255,0,150.285v267.743c0,37.029,30.126,67.155,67.157,67.155h267.741
+                                        c37.03,0,67.156-30.126,67.156-67.155V195.061C402.054,188.318,396.587,182.85,389.844,182.85z"/>
+                                    <path d="M483.876,20.791c-14.72-14.72-38.669-14.714-53.377,0L221.352,229.944c-0.28,0.28-3.434,3.559-4.251,5.396l-28.963,65.069
+                                        c-2.057,4.619-1.056,10.027,2.521,13.6c2.337,2.336,5.461,3.576,8.639,3.576c1.675,0,3.362-0.346,4.96-1.057l65.07-28.963
+                                        c1.83-0.815,5.114-3.97,5.396-4.25L483.876,74.169c7.131-7.131,11.06-16.61,11.06-26.692
+                                        C494.936,37.396,491.007,27.915,483.876,20.791z M466.61,56.897L257.457,266.05c-0.035,0.036-0.055,0.078-0.089,0.107
+                                        l-33.989,15.131L238.51,247.3c0.03-0.036,0.071-0.055,0.107-0.09L447.765,38.058c5.038-5.039,13.819-5.033,18.846,0.005
+                                        c2.518,2.51,3.905,5.855,3.905,9.414C470.516,51.036,469.127,54.38,466.61,56.897z"/>
                                 </g>
-                                </svg>
-                            </button>
-                        </form>
+                            </g>
+                            </svg>
+                        </button>
                     </div>
                     <div>
                         <form  class="deleteForm", id="{{post.id}}">
@@ -408,6 +401,16 @@
         </div>
     </body>
     {% endif %}
+
+    <div>
+        <form class="edit-popup" action="/api/post/edit/{{post.id}}" method="POST" enctype="multipart/form-data" id="editForm" data-post-id="{{post.id}}" class="edit-form-container">
+          <h1>Edit Post</h1>
+          <input type="text" value="{{post.id}}" name="postId" style="display: none;">
+          <input type="text" placeholder="{{post.textContent}}" value="{{post.textContent}}" name="textContent" required>
+          <button type="submit" class="btn">Update</button>
+          <button type="reset" class="btn cancel">Close</button>
+        </form>
+    </div>
     {% endfor %}
     
     <script>
@@ -471,7 +474,59 @@
                 });
 
             });
+        
+            // function openForm() {
+            //     document.getElementById("editForm").style.display = "block";
+            //     }
 
+
+        // Edit post functionality 
+        var editButtons = document.querySelectorAll(".edit-button");
+        var editContainers = document.querySelectorAll(".edit-popup");
+
+        function checkThenOpen(editButton, editContainer) {
+                    console.log(editContainer.getAttribute("data-post-id"))
+                    var post_id = editContainer.getAttribute("data-post-id")
+                    if (post_id == editButton.id) {
+                        
+                        editContainer.style.display = "block";
+                    }
+                    
+                    editContainer.addEventListener("submit", function(event){
+                        event.preventDefault();
+
+                        var data = new FormData(editContainer);
+                        let path = '/api/post/edit/'
+                        fetch(path.concat(post_id), {method: 'POST', body: data, headers: {}}).then(res => {
+                            if (res.status == 200)
+                            {
+                                //JWT should be set so lets go to the home page
+                                location.reload();
+                            } else {
+                                    console.log(res);
+                                    alert('Something went wrong. Please try again.');
+                                }
+                            }).catch(err => {
+                                console.error("Error occured.")
+                            });
+                    })
+
+                    editContainer.addEventListener("reset", function(event){
+                        event.preventDefault();
+                        editContainer.style.display = "none";
+                    })
+                };
+        
+        editButtons.forEach((editButton) => {openEditForm(editButton, editContainers)});
+
+        function openEditForm(editButton, editContainers) {
+            editButton.addEventListener("click", function(event){
+                event.preventDefault();
+                editContainers.forEach((editContainer) => {checkThenOpen(editButton, editContainer)});
+                });}
+        
+
+        // Comment on post functionality
         var commentForms = document.querySelectorAll(".commentForm");
 
         commentForms.forEach((CommentForm) => {reply_to_post(CommentForm)});
@@ -822,15 +877,58 @@ a:hover {
 }
 
 
-.popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 999; /* Ensure it's on top of other elements */
+.edit-popup {
+  border-radius: 20px;
+  display: None;
+  position: fixed;
+  bottom: 20%;
+  right: 20%;
+  left: 20%;
+  top: 20%;
+  border: 3px solid grey;
+  background-color: white;
+  z-index: 9;
+}
+
+
+.edit-popup input[type=text] {
+  width: 70%;
+  height: 30%;
+  padding: 15px;
+  margin:  0 15% 0 15%;
+  border: none;
+  background: #f1f1f1;
+}
+
+/* When the inputs get focus, do something */
+.edit-popup input[type=text]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+/* Set a style for the submit/login button */
+.edit-popup .btn {
+  background-color: #04aa2b;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  width: 30%;
+  margin-bottom:10px;
+  margin-left:20%;
+  margin-top:5%;
+  opacity: 0.8;
+}
+
+/* Add a red background color to the cancel button */
+.edit-popup .cancel {
+  background-color: red;
+  margin-left:0;
+}
+
+/* Add some hover effects to buttons */
+.edit-popup .btn:hover, .open-button:hover {
+  opacity: 1;
 }
 
 .close {

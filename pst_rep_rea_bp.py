@@ -97,6 +97,7 @@ def editPost(postId):
         abort(404, "Unable to find that post")
 
     targetPost.textContent = request.form.get('textContent')
+    targetPost.editedAt = datetime.now()
     db.session.commit()
     
     return "OK", 200 #returning "OK"
