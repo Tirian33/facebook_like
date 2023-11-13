@@ -147,21 +147,14 @@ def friendPage():
     acc = Account.query.filter_by(id=userAccID).first()
 
     friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
+    print(friends, acc.toDict())
     pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
-    blocked = friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.isFriendRelation == False) & (Relationship.deletedAt == None)).all()
-    friendsProcessed = []
-    pendingProcessed = []
-    blocked_processed = []
+    blocked = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.isFriendRelation == False) & (Relationship.deletedAt == None)).all()
+    friendsProcessed = [fren.toDict() for fren in friends]
+    pendingProcessed = [pend.toDict() for pend in pending]
+    blocked_processed = [blck.toDict() for blck in blocked]
 
-    for f in friends:
-        friendsProcessed.append(f.toDict())
-    
-    for p in pending:
-        pendingProcessed.append(p.toDict())
-
-    for b in blocked:
-        blocked_processed.append(p.toDict())
-    
+    print(friendsProcessed, pendingProcessed, blocked_processed)
     return render_template('friends.html', account = acc.toDict(), friends = friendsProcessed, pending = pendingProcessed, blocked = blocked_processed)
 
 @pages_bp.route('/signup')
