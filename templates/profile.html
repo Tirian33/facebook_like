@@ -111,7 +111,7 @@
 
 
     {% for post in timeline %}
-    {% if (postable[post.posterID]) or ((postable[post.sharedPostID] == None) or (postable[post.sharedPostAccId])) %}
+    {% if ((postable[post.posterID]) and (postable[post.sharedPostAccId])) or ((postable[post.posterID]) and (post.sharedPostID == 0)) %}
     &nbsp
     <body>
         <div class="postcard">
@@ -125,9 +125,16 @@
                         {% endif %}
                     </div>
                     <div class="post-header-text">
+                        {% if post.posterID == user.id %}
                         <div class="post-poster">
-                        <span>{{postable[post.posterID]}}</span>
+                            <a href="/profile" style="color:black" class="btn">{{postable[post.posterID]}}</a>
                         </div>
+                        {% else %}
+                        <div class="post-poster">
+                            <a href="/timeline/{{post.posterID}}" style="color:black" class="btn">{{postable[post.posterID]}}</a>
+                        </div>
+                        {% endif %}
+                        
                         {% if post.createdAt %}
                         <div class="post-datetime">
                         <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
@@ -147,17 +154,17 @@
                         <div class="post-profile">
                             {% if postable[post.sharedPostAccId|string + "-p"] != None %}
                             <img src='/api/images/{{postable[post.sharedPostAccId|string + "-p"]}}' class="mini-profile"/>
-                                {% else %}
-                                <img src="/static/public/profile.png" class="mini-profile"/>    
+                            {% else %}
+                            <img src="/static/public/profile.png" class="mini-profile"/>    
                             {% endif %}
                         </div>
                         <div class="post-header-text">
                             <div class="post-poster">
-                            <span>{{postable[post.sharedPostAccId]}}</span>
+                                <a href="/timeline/{{post.sharedPostAccId}}" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
                             </div>
                             {% if post.sharedPostCreatedAt %}
                             <div class="post-datetime">
-                            <span> {{ post.sharedPostCreatedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                                <span> {{ post.sharedPostCreatedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
                             </div>
                             {% endif %}
                         </div> 
@@ -253,12 +260,21 @@
                             </button>
                         </form>
                     </div>
-                    
-                    {% if account.id != user.id %}
+
+                    <!-- Can't share posts already on your own timeline -->
+                    {% if account.id != user.id %} 
+                    <!-- Can't share posts you made -->
                     {% if post.posterID != user.id %}
                     <div>
                         <form  class="shareForm", id="{{post.id}}">
+                            <!-- Non-shared post behavior -->
+                            {% if post.sharedPostID == 0 %}
                             <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.id}}" style="display: none;">
+                            <!-- Shared post behavior -->
+                            {% else %}
+                            <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.sharedPostID}}" style="display: none;">
+                            <!-- End behavior logic -->
+                            {% endif %}
                             <input type="text" id="postedOnID" value= {{user.id}} name="postedOnID" style="display: none;">
                             <button class="share-button" type="submit">
                                 <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -764,6 +780,13 @@
     
 }
 
+a {
+    height: 10px;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 .profileinfo>span:nth-of-type(2) {
     font-size: 18;
 
@@ -793,15 +816,16 @@
 
 .post-poster {
     font-size: 18;
-    margin-top: 30px;
+    margin-top: 13px;
     margin-left: 5px;
+    margin-bottom: 4px;
     font-weight: bold;
 }
 
 .post-datetime {
     font-size: 12;
     margin-top: 0%;
-    margin-left: 5px;
+    margin-left: 20px;
 }
 
 .post-content {
