@@ -87,7 +87,7 @@
 
 
     {% for post in timeline %}
-    {% if (postable[post.posterID]) or ((postable[post.sharedPostID] == None) or (postable[post.sharedPostAccId])) %}
+    {% if ((postable[post.posterID]) and (postable[post.sharedPostAccId])) or ((postable[post.posterID]) and (post.sharedPostID == 0)) %}
     &nbsp
     <body>
         <div class="postcard">
@@ -236,12 +236,21 @@
                             </button>
                         </form>
                     </div>
-                    
-                    {% if account.id != user.id %}
+
+                    <!-- Can't share posts already on your own timeline -->
+                    {% if account.id != user.id %} 
+                    <!-- Can't share posts you made -->
                     {% if post.posterID != user.id %}
                     <div>
                         <form  class="shareForm", id="{{post.id}}">
+                            <!-- Non-shared post behavior -->
+                            {% if post.sharedPostID == 0 %}
                             <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.id}}" style="display: none;">
+                            <!-- Shared post behavior -->
+                            {% else %}
+                            <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.sharedPostID}}" style="display: none;">
+                            <!-- End behavior logic -->
+                            {% endif %}
                             <input type="text" id="postedOnID" value= {{user.id}} name="postedOnID" style="display: none;">
                             <button class="share-button" type="submit">
                                 <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
