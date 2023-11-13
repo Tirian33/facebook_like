@@ -72,6 +72,7 @@
                         <button class="message-button">View Page</button>
                         </a>
                         <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Unfriend</button>
+                         <button class="block-button" data-popup-id="block-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Block</button> 
                     </div>
                 </li>
                 {% endfor %}
@@ -85,6 +86,7 @@
                 <button class="message-button" id="send-friend-request-button">submit</button>
                 <label for="UserCode" style="left:150px;">     Your code: {{ account['friendCode'] }}</label>
             </form>
+            <button class="view-block-list-button" data-popup-id="block-list-popup">View Block List</button>
             <h2 class="pending-requests-header">Pending Requests</h2>
             <ul class="pending-requests-list">
                 {% for pending in pending %}
@@ -100,6 +102,7 @@
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
                         <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Decline</button>
+                       <!-- <button class="block-button" data-popup-id="block-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Block</button> -->
                     </div>
                 </li>
                 {% endfor %}
@@ -148,6 +151,27 @@
         </div>
     </div>
 
+        <!-- Block Pop-up -->
+    <div id="block-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-block-popup">&times;</span>
+            <h2>Block <span id="block-popup-username"></span></h2>
+            <p>Are you sure you want to block this person?</p>
+            <button class="block-popup-confirm" id="block-popup-confirm">Block</button>
+        </div>
+    </div>
+
+            <!-- Block List Pop-up -->
+        <div id="block-list-popup" class="popup">
+            <div class="popup-content">
+                <span class="close" id="close-block-list-popup">&times;</span>
+                <h2>Blocked Friends</h2>
+                <ul class="block-list">
+                    <!-- List of blocked friends will be  populated here -->
+                </ul>
+            </div>
+        </div>
+
     <!-- Your script tag for JavaScript -->
     <script>
 
@@ -167,6 +191,10 @@
                             }
                         });
                     });
+
+                 
+
+
         //Friend Request Maker
         var friendForm = document.getElementById("newFriendForm");
         friendForm.addEventListener("submit", function(event){
@@ -224,7 +252,7 @@
 
 
 
-            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button");
+            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button , .block-button");
             const closePopupButtons = document.querySelectorAll(".close");
             const popups = document.querySelectorAll(".popup");
 
@@ -235,7 +263,7 @@
                     popup.style.display = "flex";
                     console.log("Clicked a " + popupId + " button.");
 
-                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
+                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup" || popupId=="block-popup") {
                         const friendId = button.getAttribute("data-friend-id");
                         const friendName = button.parentElement.previousElementSibling.innerText;
                         const friendCode = button.getAttribute("data-friend-code");
@@ -312,7 +340,57 @@
                     });
                 });
             });
+        
+            //Handles view blocked button
+        const blockListButton = document.querySelector(".view-block-list-button");
+        const blockListPopup = document.getElementById("block-list-popup");
+        const closeBlockListPopup = document.getElementById("close-block-list-popup");
+
+        blockListButton.addEventListener("click", () => {
+            // Fetch the list of blocked friends and populate the block-list ul dynamically
+            fetch('/api/getBlockedFriends')
+                .then(response => response.json())
+                .then(data => {
+                    const blockList = document.querySelector(".block-list");
+                    blockList.innerHTML = ""; // Clear existing content
+
+                    // Populate the block list
+                    data.forEach(friend => {
+                        const listItem = document.createElement("li");
+                        listItem.innerHTML = `
+                            <p>${friend.username}</p>
+                            <button class="unblock-button" data-friend-id="${friend.id}" data-friend-code="${friend.friendCode}">Unblock</button>
+                        `;
+                        blockList.appendChild(listItem);
+
+                        // Add an event listener for each "Unblock" button
+                        const unblockButton = listItem.querySelector(".unblock-button");
+                        unblockButton.addEventListener("click", () => {
+                            // Handle the unblocking logic when the "Unblock" button is clicked
+                            const friendId = unblockButton.getAttribute("data-friend-id");
+                            const friendCode = unblockButton.getAttribute("data-friend-code");
+
+                            // Perform the unblocking action (send request to the server, etc.)
+                            // ...
+
+                            // Optionally, you can remove the friend from the list once unblocked
+                            listItem.remove();
+                        });
+                    });
+
+                    // Display the block list popup
+                    blockListPopup.style.display = "flex";
+                })
+                .catch(error => {
+                    console.log("Error fetching blocked friends:", error);
+                });
         });
+
+        // Close block list popup on close button click
+        closeBlockListPopup.addEventListener("click", () => {
+            blockListPopup.style.display = "none";
+        });
+    });
     </script>
 </body>
 </html>
@@ -438,6 +516,47 @@
 
 .pending-requests-list p {
     font-size: 16px;
+}
+
+.block-button {
+    padding: 5px 10px;
+    background-color: #bb0faf;  
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+.block-button:hover {
+    background-color: #151616;  /* Darker  on hover */
+}
+
+/* Add this style for the block popup */
+#block-popup {
+    /* Your existing popup styles */
+    display: none;
+}
+
+#block-popup .popup-content {
+    /* Your existing popup content styles */
+}
+
+#block-popup-confirm {
+    background-color: #e74c3c; /* Red for Block */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+}
+
+#block-popup-confirm:hover {
+    filter: brightness(0.8);
+}
+
+#block-list-popup {
+    display: none;
 }
 
 .request-buttons {
@@ -653,5 +772,68 @@
 
 .show {
     display: block;
+}
+
+#block-list-popup .popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-height: 70vh; /* Set the maximum height */
+    overflow-y: auto; /* Enable vertical scroll if content exceeds max height */
+}
+
+.view-block-list-button {
+    /* Add your desired styling properties */
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text color */
+    padding: 10px 20px; /* Padding for better appearance */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    cursor: pointer; /* Add pointer cursor on hover */
+}
+
+.view-block-list-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+
+/* styles for the block list */
+.block-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto; /* Enable vertical scroll if content exceeds max height */
+}
+
+.block-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.block-list p {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.unblock-button {
+    padding: 5px 10px;
+    background-color: #3498db; /* Blue for Unblock */
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unblock-button:hover {
+    filter: brightness(0.8);
 }
 </style>
