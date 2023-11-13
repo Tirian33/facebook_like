@@ -84,3 +84,45 @@ def removeFriend():
     db.session.commit()
     
     return "OK", 200
+
+@relationship_bp.route('/api/blockUser', methods=['POST'])
+@jwt_required()
+def block_User():
+    if request.json.get('friendCode') is None:
+        abort(400, "Need Friend Code of user to block.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
+
+    target_account = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
+   
+    if target_account is None:
+        abort(400, "User not found.")
+    
+    block_relationship = Relationship(get_jwt_identity(), target_account.id, False)
+    
+    db.session.add(block_relationship)
+    db.session.commit()
+    
+    return "OK", 200
+
+@relationship_bp.route('/api/unblockUser', methods=['POST'])
+@jwt_required()
+def unblock_User():
+    if request.json.get('friendCode') is None:
+        abort(400, "Need Friend Code of user to unblock.")
+    elif len(request.json.get('friendCode')) != 8:
+        abort(400, "Friend Code is 8 characters.")
+
+    target_account = Account.query.filter_by(friendCode=request.json.get('friendCode')).first()
+   
+    if target_account is None:
+        abort(400, "User not found.")
+    Relationship.isFriendRelation
+    target_block = Relationship.query.filter_by(firstAccountID = get_jwt_identity(), secondAccountID = target_account.id, isFriendRelation = False, deletedAt = None).first()
+    
+    if target_block is not None:
+        target_block.deletedAt = datetime.now()
+        db.session.commit()
+    
+    
+    return "OK", 200
