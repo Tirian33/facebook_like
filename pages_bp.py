@@ -70,7 +70,6 @@ def homePage():
         numLikes.append(num_likes)
 
     numLikes = {posts[i]: numLikes[i] for i in range(len(posts))}
-    print(postable)
     return render_template('profile.html', account = acc.toDict(), friends = friends, timeline = processedTL, postable=postable, pageOwner=userAccID, user = acc, likedPosts = likedPosts, userReactions=userReactions, numLikes=numLikes)
 
 @pages_bp.route('/timeline/<int:accID>')
@@ -109,10 +108,6 @@ def timeline(accID):
     for pst in timeline:
         processedTL.append(pst.process(myAcc.id, allMyFriendsIds))
 
-    # for post in processedTL:
-    #     print(post)
-    #     print(post['sharedPostAccID'])
-
     likedPosts = []
     likedReactions = []
     for post in timeline:
@@ -147,14 +142,12 @@ def friendPage():
     acc = Account.query.filter_by(id=userAccID).first()
 
     friends = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.confirmedRelation == True) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
-    print(friends, acc.toDict())
     pending = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == Account.id) & (Relationship.secondAccountID == acc.id) & (Relationship.confirmedRelation == False) & (Relationship.isFriendRelation == True) & (Relationship.deletedAt == None)).all()
     blocked = db.session.query(Account).join( Relationship, (Relationship.firstAccountID == acc.id) & (Relationship.secondAccountID == Account.id) & (Relationship.isFriendRelation == False) & (Relationship.deletedAt == None)).all()
     friendsProcessed = [fren.toDict() for fren in friends]
     pendingProcessed = [pend.toDict() for pend in pending]
     blocked_processed = [blck.toDict() for blck in blocked]
 
-    print(friendsProcessed, pendingProcessed, blocked_processed)
     return render_template('friends.html', account = acc.toDict(), friends = friendsProcessed, pending = pendingProcessed, blocked = blocked_processed)
 
 @pages_bp.route('/signup')

@@ -17,6 +17,9 @@ def sendFriendRequest():
    
     if targetAccount is None:
         abort(400, "Friend not found.")
+
+    if targetAccount.id == get_jwt_identity():
+        abort(400, "You cannot friend yourself.")
     
     pendingInverse = Relationship.query.filter_by(secondAccountID = get_jwt_identity(), firstAccountID = targetAccount.id, deletedAt = None).first()
     
