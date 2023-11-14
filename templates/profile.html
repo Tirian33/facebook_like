@@ -60,7 +60,7 @@
             </div>
             <div class="profileinfo">
                 <span>{{account['fName']}} {{account['lName']}}</span>
-                <span>Bio: {{account['bio']}} </span>
+                <span>{{account['bio']}} </span>
                 <span>Friend Code: {{ account['friendCode'] }}</span>
             </div>
             <hr>
@@ -393,7 +393,7 @@
                                 {% endif %}
                             </div>
                         
-                            {% if (reply.posterID == user) or (pageOwner == user)%}
+                            {% if (reply.posterID == user.id) or (pageOwner == user.id)%}
                             <div>
                                 <form  class="replyDeleteForm", id="{{ reply.id }}">
                                     <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
