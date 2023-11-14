@@ -69,7 +69,7 @@
                     {% else %}
                     <img src="/static/public/profile.png" alt="" class="'mini-profile">
                     {% endif %}
-                    <p>{{friend.username}}</p>
+                    <p>{{friend['fName']}} {{friend['lName']}}</p>
                     <div class="friend-buttons">
                         <a href="/timeline/{{friend.id}}">
                         <button class="message-button">View Page</button>
@@ -103,7 +103,7 @@
                     <img src="static/public/profile.png" alt="" class="'mini-profile">
                     {% endif %}
                     <a href="/timeline/{{pending.id}}"></a>
-                    <p>{{pending.username}}</p>
+                    <p>{{pending['fName']}} {{pending['lName']}}</p>
                     </a>
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
