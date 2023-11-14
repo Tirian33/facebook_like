@@ -156,7 +156,11 @@
                         </div>
                         <div class="post-header-text">
                             <div class="post-poster">
+                                {% if post.sharedPostAccId != user.id %}
                                 <a href="/timeline/{{post.sharedPostAccId}}" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
+                                {% else %}
+                                <a href="/profile" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
+                                {% endif %}
                             </div>
                             {% if post.sharedPostCreatedAt %}
                             <div class="post-datetime">
