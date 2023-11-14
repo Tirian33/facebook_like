@@ -33,12 +33,26 @@ from models import *
 
 #ERROR HANDLING
 @jwt.unauthorized_loader
-def handleMissingToken(error):
-    print(error)
-    if 'Missing cookie "access_token_cookie"' in str(error):
-        return redirect(url_for('pages.loginPage', redirectReason = "noTkn"))  #Was not signed in
-    
-    return redirect(url_for('pages.loginPage', redirectReason = "tknExp"))  #Token expired
+def handle_missing_token(error):
+    '''
+    Handles access to pages without a access_token
+    P:
+        error: error object
+    R:
+        Redirects to the login_page
+    '''
+    return redirect(url_for('pages.login_page', redirect_reason = "noTkn"))  #Was not signed in
+
+@jwt.expired_token_loader
+def handle_expired_token(jwt_info, token):
+    '''
+    Handles access to pages with an expired access_token
+    P:
+        error: error object
+    R:
+        Redirects to the login_page
+    '''
+    return redirect(url_for('pages.login_page', redirect_reason = "tknExp"))  #Token expired
 
 @app.errorhandler(500)
 def handle500(error):

@@ -28,7 +28,6 @@ def imageHandler(request, fileAccessor, imgTarget, account):
 
             # Get the image id
             img_id = img.id
-            print(img_id)
 
             if imgTarget == 1:
                 account.profileImageID = img_id
@@ -36,13 +35,9 @@ def imageHandler(request, fileAccessor, imgTarget, account):
                 account.coverImageID = img_id
         else:
             #File too large
-            print(len(image))
             return False
     
     #Successful end
-    print(fileAccessor, imgTarget)
-    print(account.profileImageID)
-    print(account.coverImageID)
     return True
 
 #Account creation at default request

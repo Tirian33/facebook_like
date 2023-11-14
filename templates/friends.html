@@ -59,6 +59,9 @@
         <div class="friends-container">
             <h2 class="friends-header">Friends</h2>
             <ul class="friends-list">
+                {% if not friends %}
+                <p>You have no Friend.</p>
+                {% endif %}
                 {% for friend in friends %}
                 <li>
                     {% if friend.profileImageID != None %}
@@ -66,7 +69,7 @@
                     {% else %}
                     <img src="/static/public/profile.png" alt="" class="'mini-profile">
                     {% endif %}
-                    <p>{{friend.username}}</p>
+                    <p>{{friend['fName']}} {{friend['lName']}}</p>
                     <div class="friend-buttons">
                         <a href="/timeline/{{friend.id}}">
                         <button class="message-button">View Page</button>
@@ -89,6 +92,9 @@
             <button class="view-block-list-button" data-popup-id="block-list-popup">View Block List</button>
             <h2 class="pending-requests-header">Pending Requests</h2>
             <ul class="pending-requests-list">
+                {% if not pending %}
+                <p>No Pending Request.</p>
+                {% endif %}
                 {% for pending in pending %}
                 <li>
                     {% if pending.profileImageID != None %}            
@@ -97,7 +103,7 @@
                     <img src="static/public/profile.png" alt="" class="'mini-profile">
                     {% endif %}
                     <a href="/timeline/{{pending.id}}"></a>
-                    <p>{{pending.username}}</p>
+                    <p>{{pending['fName']}} {{pending['lName']}}</p>
                     </a>
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
@@ -320,12 +326,12 @@
                                  else if (popupId === "block-list-popup") {
                                     const myButton = document.getElementById('block-list-popup-confirm');
                                     
-                                    myButton.addEventListener('click', function() {
-                                    const FriendCode = myButton.getAttribute('data-friend-code');
+                                   // myButton.addEventListener('click', function() {
+                                    const friendCode = myButton.getAttribute('data-friend-code');
                                     fetch('/api/unblockUser', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ FriendCode }), 
+                                    body: JSON.stringify({ friendCode }), 
                                 }).then(function (res) {
                                         if (res.status == 200) {
                                             alert('Friend unblocked successfully.');
@@ -337,7 +343,7 @@
                                     .catch(function (error) {
                                         console.log("ERROR ON UNBLOCKING FRIEND:", error);
                                     });
-                                 });
+                                // });
                                  }
                                  else if (popupId === "decline-popup") {
                                 //action should call makeFriend
@@ -533,14 +539,14 @@
     background-color: #151616;  /* Darker  on hover */
 }
 
-/* Add this style for the block popup */
+/* style for the block popup */
 #block-popup {
-    /* Your existing popup styles */
+    /*  popup styles */
     display: none;
 }
 
 #block-popup .popup-content {
-    /* Your existing popup content styles */
+    /*  popup content styles */
 }
 
 #block-popup-confirm {
