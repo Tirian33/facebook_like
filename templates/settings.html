@@ -7,9 +7,50 @@
     <link rel="stylesheet" href="templates/settings.css">
 </head>
 <body>
-    <header>
-        <h1>Account Settings</h1>
-    </header>
+    <!-- User Account Dropdown -->
+    <div class="user-account">
+        <div class="user-avatars">
+            <div class="user-avatar">
+                <a href="/profile"><img src="static/public/logo.png" alt="" ></a>
+            <!-- <img src="static/public/strawberry.jpg" alt=""> -->
+            </div>
+
+             <!-- Links with icons for Home, Friends, and Settings -->
+             <a href="/profile" class="user-link">
+                <span class="icon home-icon"></span>
+                Home
+            </a>
+        
+            <!-- Friends Icon -->
+            <a href="/friends" class="user-link">
+                <span class="icon friends-icon"></span>
+                Friends
+            </a>
+        
+            <!-- Settings Icon -->
+            <a href="/settings" class="user-link">
+                <span class="icon settings-icon"></span>
+                Settings
+            </a>
+
+            <div class="user-avatar user-avatar-right">
+                <!--  second user-avatar content here -->
+                {% if account.profileImageID != None %}
+                        <img src="/api/images/{{account.profileImageID}}" alt="" >
+                        {% else %}
+                        <img src="static/public/profile.png" alt="" >
+                        {% endif %}
+            </div>
+        </div>
+        <div class="user-dropdown">
+            <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
+            <div class="user-dropdown-content" id="user-dropdown-content">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <a href="/" id="logout">Logout</a>
+            </div>
+        </div>
+    </div>
     <div class="settings-container">
         <form>
             <div class="user-avatar">
@@ -51,7 +92,7 @@
             <button id="save-settings-button">Update Password</button>
 
         </form>
-        <a href="/profile" ><button id="cancel-settings-button">Cancel</button></a>
+        <!-- <a href="/profile" ><button id="cancel-settings-button">Cancel</button></a> -->
     </div>
     <script>
         document.getElementById("save-settings-button").addEventListener("click", function() {
@@ -172,9 +213,17 @@ header {
 }
 
 .settings-container {
-    max-width: 400px;
     margin: 0 auto;
+    margin-top: 60px;
+    max-width: 400px;
     padding: 20px;
+}
+
+.content-container {
+    margin-top: 60px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .user-avatar {
@@ -268,6 +317,137 @@ button#save-bio-button {
 
 button#save-bio-button:hover {
     background-color: #1659a3; /* Darker blue on hover */
+}
+
+.user-account {
+    background-color: #1877f2; 
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 98%;
+    height: 60px; 
+    z-index: 1; 
+    border-radius: 1px 15px 15px 15px;
+
+}
+
+.user-avatars {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.user-avatar-right {
+    margin-left: auto;
+}
+
+.user-avatar-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar {
+    border: 2px solid #555;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.user-avatar img {
+
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+ .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+} 
+
+.user-link {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.user-link .icon {
+    margin-right: 5px; /* Adjust the margin as needed */
+}
+
+/* Adjust the icon style as needed */
+.icon {
+    display: inline-block;
+    width: 20px; /* Adjust the width as needed */
+    height: 20px; /* Adjust the height as needed */
+    border-radius: 50%; /* Use this for a circular icon */
+    background-size: cover;
+    background-position: center;
+}
+
+.home-icon {
+    background-image: url('static/public/home-icon.png'); /* Replace with the path to your home icon image */
+}
+
+.friends-icon {
+    background-image: url('static/public/friends-icon.png'); /* Replace with the path to your friends icon image */
+}
+
+.settings-icon {
+    background-image: url('static/public/settings-icon.png'); /* Replace with the path to your settings icon image */
+}
+
+.user-dropdown {
+    position: absolute;
+    right: 25px;
+}
+
+.user-dropdown-button {
+    border-radius: 10%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 0;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.user-dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.user-dropdown-content a:hover {
+    background-color: #f2f2f2;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.show {
+    display: block;
 }
 
 </style>
