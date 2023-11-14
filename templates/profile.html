@@ -7,7 +7,7 @@
         <div class="user-account">
         <div class="user-avatars">
             <div class="user-avatar">               
-                <a href="/profile"> <img src="static/public/logo.png" alt=""></a>
+                <a href="/profile"> <img src="/static/public/logo.png" alt=""></a>
             </div>
              <!-- Links with icons for Home, Friends, and Settings -->
              <a href="/profile" class="user-link">
@@ -30,7 +30,7 @@
             <div class="user-avatar user-avatar-right">
                 <!--  second user-avatar content here -->
                 {% if account.profileImageID != None %}
-                        <img src="/api/images/{{account.profileImageID}}" alt="" >
+                        <img src="/api/images/{{user.profileImageID}}" alt="" >
                         {% else %}
                         <img src="static/public/profile.png" alt="" >
                         {% endif %}
@@ -156,7 +156,11 @@
                         </div>
                         <div class="post-header-text">
                             <div class="post-poster">
+                                {% if post.sharedPostAccId != user.id %}
                                 <a href="/timeline/{{post.sharedPostAccId}}" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
+                                {% else %}
+                                <a href="/profile" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
+                                {% endif %}
                             </div>
                             {% if post.sharedPostCreatedAt %}
                             <div class="post-datetime">
@@ -321,7 +325,6 @@
 
                     {% if (post.posterID == user.id) or (pageOwner == user.id) %}
                     <div>
-                   
                         <button class="edit-button" type="submit" id="{{post.id}}">
                             <svg class="svg2" fill="#0056b3" stroke-width="1" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
                                 width="25" height="25" viewBox="0 0 494.936 494.936"
