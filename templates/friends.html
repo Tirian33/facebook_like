@@ -168,7 +168,15 @@
                 <h2>Blocked Friends</h2>
                 <ul class="block-list">
                     <!-- List of blocked friends will be  populated here -->
-                </ul>
+                    {% if not blocked %}
+                    <p>No blocked friends.</p>
+                    {% else %}
+                     {% for blocked in blocked %}
+                    <p>{{blocked.username}}</p>
+                <button class="block-list-popup-confirm" id="block-list-popup-confirm" data-friend-id="{{blocked.id}}" data-friend-code="{{blocked.friendCode}}">Unblock</button>
+                {% endfor %}
+                {% endif %}
+            </ul>
             </div>
         </div>
 
@@ -252,7 +260,7 @@
 
 
 
-            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button , .block-button");
+            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button , .block-button , .view-block-list-button");
             const closePopupButtons = document.querySelectorAll(".close");
             const popups = document.querySelectorAll(".popup");
 
@@ -263,7 +271,7 @@
                     popup.style.display = "flex";
                     console.log("Clicked a " + popupId + " button.");
 
-                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup" || popupId=="block-popup") {
+                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup" || popupId==="block-popup" || popupId==="block-list-popup") {
                         const friendId = button.getAttribute("data-friend-id");
                         const friendName = button.parentElement.previousElementSibling.innerText;
                         const friendCode = button.getAttribute("data-friend-code");
@@ -290,7 +298,48 @@
                                     .catch(function (error) {
                                         console.log("ERROR ON REMOVE FRIEND:", error);
                                     });
-                            } else if (popupId === "decline-popup") {
+       
+                            } else if (popupId === "block-popup") {
+                                fetch('/api/blockUser', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend blocked successfully.');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to block friend.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON BLOCKING FRIEND:", error);
+                                    });
+                            
+                                 }
+                                 else if (popupId === "block-list-popup") {
+                                    const myButton = document.getElementById('block-list-popup-confirm');
+                                    
+                                    myButton.addEventListener('click', function() {
+                                    const FriendCode = myButton.getAttribute('data-friend-code');
+                                    fetch('/api/unblockUser', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ FriendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend unblocked successfully.');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to unblock friend.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON UNBLOCKING FRIEND:", error);
+                                    });
+                                 });
+                                 }
+                                 else if (popupId === "decline-popup") {
                                 //action should call makeFriend
                                 fetch('/api/declineFriend', {
                                     method: 'POST',
@@ -340,56 +389,7 @@
                     });
                 });
             });
-        
-            //Handles view blocked button
-        const blockListButton = document.querySelector(".view-block-list-button");
-        const blockListPopup = document.getElementById("block-list-popup");
-        const closeBlockListPopup = document.getElementById("close-block-list-popup");
-
-        blockListButton.addEventListener("click", () => {
-            // Fetch the list of blocked friends and populate the block-list ul dynamically
-            fetch('/api/getBlockedFriends')
-                .then(response => response.json())
-                .then(data => {
-                    const blockList = document.querySelector(".block-list");
-                    blockList.innerHTML = ""; // Clear existing content
-
-                    // Populate the block list
-                    data.forEach(friend => {
-                        const listItem = document.createElement("li");
-                        listItem.innerHTML = `
-                            <p>${friend.username}</p>
-                            <button class="unblock-button" data-friend-id="${friend.id}" data-friend-code="${friend.friendCode}">Unblock</button>
-                        `;
-                        blockList.appendChild(listItem);
-
-                        // Add an event listener for each "Unblock" button
-                        const unblockButton = listItem.querySelector(".unblock-button");
-                        unblockButton.addEventListener("click", () => {
-                            // Handle the unblocking logic when the "Unblock" button is clicked
-                            const friendId = unblockButton.getAttribute("data-friend-id");
-                            const friendCode = unblockButton.getAttribute("data-friend-code");
-
-                            // Perform the unblocking action (send request to the server, etc.)
-                            // ...
-
-                            // Optionally, you can remove the friend from the list once unblocked
-                            listItem.remove();
-                        });
-                    });
-
-                    // Display the block list popup
-                    blockListPopup.style.display = "flex";
-                })
-                .catch(error => {
-                    console.log("Error fetching blocked friends:", error);
-                });
-        });
-
-        // Close block list popup on close button click
-        closeBlockListPopup.addEventListener("click", () => {
-            blockListPopup.style.display = "none";
-        });
+     
     });
     </script>
 </body>
@@ -836,4 +836,19 @@
 .unblock-button:hover {
     filter: brightness(0.8);
 }
+
+.block-list-popup-confirm {
+    padding: 5px 10px;
+    background-color: #3498db; /* Blue for Unblock */
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.block-list-popup-confirm:hover {
+    filter: brightness(0.8);
+}
+
 </style>
