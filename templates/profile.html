@@ -7,7 +7,7 @@
         <div class="user-account">
         <div class="user-avatars">
             <div class="user-avatar">               
-                <a href="/profile"> <img src="static/public/logo.png" alt=""></a>
+                <a href="/profile"> <img src="/static/public/logo.png" alt=""></a>
             </div>
              <!-- Links with icons for Home, Friends, and Settings -->
              <a href="/profile" class="user-link">
@@ -30,7 +30,7 @@
             <div class="user-avatar user-avatar-right">
                 <!--  second user-avatar content here -->
                 {% if account.profileImageID != None %}
-                        <img src="/api/images/{{account.profileImageID}}" alt="" >
+                        <img src="/api/images/{{user.profileImageID}}" alt="" >
                         {% else %}
                         <img src="static/public/profile.png" alt="" >
                         {% endif %}
