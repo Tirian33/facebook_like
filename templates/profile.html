@@ -125,7 +125,6 @@
                             <a href="/timeline/{{post.posterID}}" style="color:black" class="btn">{{postable[post.posterID]}}</a>
                         </div>
                         {% endif %}
-                        
                         {% if (post.createdAt) and (post.editedAt == None) %}
                         <div class="post-datetime">
                         <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
@@ -368,14 +367,13 @@
                 
 
             </div>
-
             {% if post.replies %}
                 {% for reply in post.replies %}
-                    {% if reply.deletedAt == None %}
+                    {% if reply.deleted_at== None %}
                     <div class="reply">
                         <div class="reply-header">
                             <div class="reply-profile">
-                                {% if postable[reply.posterID|string + "-p"] != None %}
+                                {% if postable[reply.poster_id|string + "-p"] != None %}
                                 <img src='/api/images/{{postable[reply.posterID|string + "-p"]}}' class='mini-profile'/>
                                
                                 {% else %}
@@ -384,7 +382,7 @@
                             </div>
                             <div class="reply-header-text">
                                 <div class="reply-poster">
-                                    <span><SPAN STYLE="font-weight:bold">{{ postable[reply.posterID] }}</SPAN> replied:</span>
+                                    <span><SPAN STYLE="font-weight:bold">{{ postable[reply.poster_id] }}</SPAN> replied:</span>
                                 </div>
                                 {% if post.createdAt %}
                                 <div class="reply-datetime">
@@ -393,7 +391,7 @@
                                 {% endif %}
                             </div>
                         
-                            {% if (reply.posterID == user.id) or (pageOwner == user.id)%}
+                            {% if (reply.poster_id == user.id) or (pageOwner == user.id)%}
                             <div>
                                 <form  class="replyDeleteForm", id="{{ reply.id }}">
                                     <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
@@ -409,7 +407,7 @@
                         </div>
                             <div class="reply-content">
                                 <div class="reply-text">
-                                    <span>{{ reply.textContent }}</span>
+                                    <span>{{ reply.text_content }}</span>
                                 </div>
                             </div>  
                         </div> 
