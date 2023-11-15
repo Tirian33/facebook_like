@@ -30,16 +30,18 @@ def home_page():
     acc = Account.query.filter_by(id=get_jwt_identity()).first()
 
     #Gets all the accounts that are friends with the user.
-    all_friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True)).all()
+    raw_friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True) & (Relationship.deleted_at == None)).all()
+    raw_postable = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True)).all()
 
     friends = []
     postable = {}
     postable.update(acc.to_post_data())
 
-    for friend in all_friends:
-        if friend.deleted_at is None:
-            friends.append(friend.to_dict())
-        postable.update(friend.to_post_data())
+    for friend in raw_friends:
+        friends.append(friend.to_dict())
+
+    for user in raw_postable:
+        postable.update(user.to_post_data())
 
     timeline = Post.query.filter_by(posted_on_id=get_jwt_identity(), deleted_at=None).order_by(Post.id.desc()).all()
     processed_timeline = []
@@ -93,16 +95,19 @@ def timeline(acc_id):
     all_my_friends_ids = [account.id for account in all_my_friends]
     
     # Gets all the accounts that are friends with the user.
-    all_targ_friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc_id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True)).all()
+    raw_targ_friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc_id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True) & (Relationship.deleted_at == None)).all()
+    raw_targ_postable = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc_id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True)).all()
   
     targ_friends = []
     postable = {}
     postable.update(target_acc.to_post_data())
 
-    for friend in all_targ_friends:
-        if friend.deleted_at is None:
-            targ_friends.append(friend.to_dict())
-        postable.update(friend.to_post_data())
+    
+    for friend in raw_targ_friends:
+        targ_friends.append(friend.to_dict())
+
+    for user in raw_targ_postable:
+        postable.update(user.to_post_data())
 
     timeline = Post.query.filter_by(posted_on_id=acc_id, deleted_at=None).order_by(Post.id.desc()).all()
     processed_timeline = []
