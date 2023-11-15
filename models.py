@@ -138,7 +138,7 @@ class Post(db.Model):
             'replies' : self.replies,
             'reactions' : self.reactions,
             'createdAt' : self.created_at,
-            'editiedAt' : self.edited_at,
+            'editedAt' : self.edited_at,
             'userReacted' : user_reacted,
             'sharedPostTxt' : sp_txt,
             'sharedPostImgId' : sp_img_id,

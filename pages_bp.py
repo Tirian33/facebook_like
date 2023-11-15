@@ -68,7 +68,8 @@ def home_page():
         num_likes.append(count_likes)
 
     num_likes = {posts[i]: num_likes[i] for i in range(len(posts))}
-    print(postable)
+
+    
     return render_template('profile.html', account = acc.to_dict(), friends = friends, timeline = processed_timeline, postable=postable, pageOwner=get_jwt_identity(), user = acc, likedPosts = liked_posts, userReactions=userReactions, numLikes=num_likes)
 
 @pages_bp.route('/timeline/<int:acc_id>')
@@ -127,7 +128,7 @@ def timeline(acc_id):
         for reaction in post.reactions:
             if reaction.deleted_at == None:
                     count_likes = count_likes+1
-        num_likes.append(num_likes)
+        num_likes.append(count_likes)
 
     num_likes = {posts[i]: num_likes[i] for i in range(len(posts))}
 
