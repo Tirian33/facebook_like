@@ -206,7 +206,27 @@
                         });
                     });
 
-                 
+                    document.addEventListener("DOMContentLoadeded",function(){
+                    const myButton = document.getElementById('block-list-popup-confirm');
+
+                    myButton.addEventListener('click', function () {
+                        const friendCode = myButton.getAttribute('data-friend-code');
+                        fetch('/api/unblockUser', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ friendCode }),
+                        }).then(function (res) {
+                            if (res.status == 200) {
+                                alert('Friend unblocked successfully.');
+                                location.reload();
+                            } else {
+                                alert('Unable to unblock friend.');
+                            }
+                        }).catch(function (error) {
+                            console.log("ERROR ON UNBLOCKING FRIEND:", error);
+                        });
+                    });
+                });   
                
 
         //Friend Request Maker
@@ -277,7 +297,29 @@
                     popup.style.display = "flex";
                     console.log("Clicked a " + popupId + " button.");
 
-                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup" || popupId==="block-popup" || popupId==="block-list-popup") {
+                    if (popupId === "block-list-popup") {
+                    const myButton = document.getElementById('block-list-popup-confirm');
+
+                    myButton.addEventListener('click', function () {
+                        const friendCode = myButton.getAttribute('data-friend-code');
+                        fetch('/api/unblockUser', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ friendCode }),
+                        }).then(function (res) {
+                            if (res.status == 200) {
+                                alert('Friend unblocked successfully.');
+                                location.reload();
+                            } else {
+                                alert('Unable to unblock friend.');
+                            }
+                        }).catch(function (error) {
+                            console.log("ERROR ON UNBLOCKING FRIEND:", error);
+                        });
+                    });
+                }
+
+                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup" || popupId==="block-popup" ) {
                         const friendId = button.getAttribute("data-friend-id");
                         const friendName = button.parentElement.previousElementSibling.innerText;
                         const friendCode = button.getAttribute("data-friend-code");
