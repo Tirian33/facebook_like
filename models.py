@@ -56,7 +56,7 @@ class Account(db.Model):
         data[str(self.id) + "-p"] = self.profile_image_id
         return data
     
-    def changePW(self, old_pw, new_pw):
+    def change_pw(self, old_pw, new_pw):
         '''
         Changes the password of an Account.
         P:

@@ -120,7 +120,6 @@ def kill_session(exception=None):
     '''
     Terminates the db session on application close.
     '''
-    print(exception)
     db.session.remove()
 
 #defining the app as itself (don't mess with this)
