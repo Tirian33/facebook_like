@@ -75,7 +75,7 @@
                         <button class="message-button">View Page</button>
                         </a>
                         <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Unfriend</button>
-                         <button class="block-button" data-popup-id="block-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Block</button> 
+                        <!-- <button class="block-button" data-popup-id="block-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Block</button> -->
                     </div>
                 </li>
                 {% endfor %}
@@ -108,7 +108,7 @@
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
                         <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Decline</button>
-                       <!-- <button class="block-button" data-popup-id="block-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Block</button> -->
+                        <button class="block-button" data-popup-id="block-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Block</button> 
                     </div>
                 </li>
                 {% endfor %}
@@ -207,7 +207,7 @@
                     });
 
                  
-
+               
 
         //Friend Request Maker
         var friendForm = document.getElementById("newFriendForm");
@@ -323,7 +323,8 @@
                                     });
                             
                                  }
-                                 else if (popupId === "block-list-popup") {
+                                 else if (popupId == "block-list-popup") {
+                                    alert('Unable to unblock friend.');
                                     const myButton = document.getElementById('block-list-popup-confirm');
                                     
                                    // myButton.addEventListener('click', function() {
