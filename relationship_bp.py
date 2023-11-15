@@ -22,8 +22,12 @@ def send_friend_request():
     if target_account is None:
         abort(400, "Friend not found.")
 
-    if targetAccount.id == get_jwt_identity():
+    if target_account.id == get_jwt_identity():
         abort(400, "You cannot friend yourself.")
+
+        # Request was sent in the past
+    if Relationship.query.filter_by(first_acc_id = get_jwt_identity(), second_acc_id = target_account.id, deleted_at = None).first() is not None:
+        abort(400, "Friend request already sent.")
     
     pending_inverse = Relationship.query.filter_by(second_acc_id = get_jwt_identity(), first_acc_id = target_account.id, deleted_at = None).first()
     
@@ -34,16 +38,12 @@ def send_friend_request():
             db.session.add(pending_inverse.make_inverse())
             db.session.commit()
             return "OK", 200
-
-    # Request was sent in the past
-    if Relationship.query.filter_by(first_acc_id = get_jwt_identity(), second_acc_id = target_account.id).first() is not None:
-        abort(400, "Request already sent")
+        abort(401, "The user you are trying to friend has blocked you.")
 
     # Lets make the request
-    elif pending_inverse is None:
-        new_relationship = Relationship(get_jwt_identity(), target_account.id)
-        db.session.add(new_relationship)
-        db.session.commit()
+    new_relationship = Relationship(get_jwt_identity(), target_account.id)
+    db.session.add(new_relationship)
+    db.session.commit()
     
     return "OK", 200
 
@@ -118,6 +118,9 @@ def block_user():
         abort(400, "User not found.")
     
     block_relationship = Relationship(get_jwt_identity(), target_account.id, False)
+
+    friend_request = Relationship.query.filter_by(second_acc_id = get_jwt_identity(), first_acc_id = target_account.id, deleted_at = None).first()
+    friend_request.deleted_at = datetime.now()
     
     db.session.add(block_relationship)
     db.session.commit()
