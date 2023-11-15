@@ -1,12 +1,11 @@
-from flask import Flask, abort, request, jsonify, Response, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import PendingRollbackError, OperationalError
+"""This is the main driving module for the Facebook imitation app 'Y'."""
 from datetime import (datetime, timedelta, timezone)
 import jwt
-from flask_jwt_extended import *
+from flask import Flask, jsonify, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import PendingRollbackError, OperationalError
+from flask_jwt_extended import (JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies)
 from flask_bcrypt import Bcrypt
-import json
-from werkzeug.utils import secure_filename
 
 # Initializing
 app = Flask(__name__)
@@ -14,7 +13,7 @@ app.config.from_pyfile("settings.py")
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
-app.app_context().push() 
+app.app_context().push()
 
 #registering Blueprints
 from account_bp import account_bp
@@ -29,7 +28,8 @@ app.register_blueprint(relationship_bp)
 from pst_rep_rea_bp import pst_rep_rea_bp
 app.register_blueprint(pst_rep_rea_bp)
 
-from models import *
+from login_logout_bp import login_logout_bp
+app.register_blueprint(login_logout_bp)
 
 #ERROR HANDLING
 @jwt.unauthorized_loader
@@ -53,74 +53,74 @@ def handle_expired_token(jwt_info, token):
         Redirects to the login_page
     '''
     return redirect(url_for('pages.login_page', redirect_reason = "tknExp"))  #Token expired
+def handle_missing_token(error):
+    '''
+    Handles access to pages without a access_token
+    P:
+        error: error object
+    R:
+        Redirects to the login_page
+    '''
+    return redirect(url_for('pages.login_page', redirect_reason = "noTkn"))  #Was not signed in
+
+@jwt.expired_token_loader
+def handle_expired_token(error, second):
+    '''
+    Handles access to pages with an expired access_token
+    P:
+        error: error object
+    R:
+        Redirects to the login_page
+    '''
+    print(error, second)
+    return redirect(url_for('pages.login_page', redirect_reason = "tknExp"))  #Token expired
 
 @app.errorhandler(500)
 def handle500(error):
+    '''
+    Sometimes the session will close when it is in use. 
+        This is usually an error due to losing connection to the DB.
+    P:
+        error: error object
+    R:
+        Returns 500 error and forces caller to retry.
+    '''
     #most likely we lost DB connection
-    if isinstance(error, OperationalError) or isinstance(error, PendingRollbackError):
+    if isinstance(error, (OperationalError, PendingRollbackError)):
         db.session.rollback()
         db.session.close()
         db.session.begin()
         return jsonify({'error': 'Lost connection to DB. Retry request.', 'retry':True}), 500
-    else:
-        raise error
-
+    raise error
 
 @app.after_request
-def refreshJWT(response):
-    try: 
-        expireTime = get_jwt()["exp"]
-        refreshtime = datetime.timestamp(datetime.now(timezone.utc) + timedelta(minutes=10))
-        if refreshtime > expireTime:
-            newToken = create_access_token(identity=get_jwt_identity(), expires_delta=timedelta(minutes=10))
-            set_access_cookies(response, newToken)
+def refresh_jwt(response):
+    '''
+    Refreshes the jwt token after user performs any API request while having a valid jwt token.
+    P: 
+        response: The response that is about to be returned to the user.
+    R: 
+        The expected response + cookie reset data
+    '''
+    try:
+        expire_time = get_jwt()["exp"]
+        refresh_time = datetime.timestamp(datetime.now(timezone.utc) + timedelta(minutes=10))
+        if refresh_time > expire_time:
+            new_token = create_access_token(identity = get_jwt_identity(),
+                                           expires_delta = timedelta(minutes=10))
+            set_access_cookies(response, new_token)
         return response
-    #If user manages to get here with a corrupted token throws RT error so just return the corrupted token.
+    #If user got here with a corrupted token, throws RT error so just return the corrupted token.
     except (RuntimeError, KeyError):
         return response
 
-@app.route('/api/login', methods=['POST'])
-def accountLogin():
-    username = request.json.get('username')
-    acct = Account.query.filter_by(username=username).first()
-    if acct is None:
-        abort(404)
-    
-    if(acct.checkPW(request.json.get('password'))):
-        accountToken = create_access_token(identity=acct.id, expires_delta=timedelta(minutes=10))
-        response = jsonify({"msg": "login is valid for accountID " + str(acct.id)})
-        set_access_cookies(response, accountToken)
-        return response    
-    #Bad info must have been given so we abort
-    abort(401)
-
-@app.route('/api/logout',  methods=['POST'])
-def logOut():
-    resp = jsonify({"msg": "Logged out"})
-    unset_access_cookies(resp)
-    return resp
-
-#Token related
-# @app.route('/api/token')
-# def getToken():
-#     token = g.account.genToken(600)
-#     return jsonify({'token': token.decode('ascii'), 'duration': 600})
-
-
-# Display the image
-@app.route('/api/images/<int:id>')
-def get_img(id):
-    img = Img.query.filter_by(id=id).first()
-    
-    if not img:
-        return "Image not found", 400
-    
-    return Response(img.img, mimetype=img.mimetype)
-
-
 #Teardown (don't mess with this)
 @app.teardown_appcontext
-def killSession(exception=None):
+def kill_session(exception=None):
+    '''
+    Terminates the db session on application close.
+    '''
+    print(exception)
     db.session.remove()
 
 #defining the app as itself (don't mess with this)
