@@ -83,7 +83,7 @@ class Account(db.Model):
         self.is_public = public
         while True:
             code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-            if Account.query.filter_by(friendCode=code).first() is None:
+            if Account.query.filter_by(friend_code=code).first() is None:
                 self.friend_code = code
                 break
 
