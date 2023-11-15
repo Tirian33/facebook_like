@@ -107,7 +107,7 @@ def update_account_bio():
     Updates the logged in account's bio.
     Request is expected to have a form fields 'new-bio'.
     '''
-    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
+    acnt = Account.query.filter_by(id=get_jwt_identity(), deleted_at=None).first()
     if acnt is None:
         abort(404, "Your account does not exist.")
 
@@ -123,7 +123,7 @@ def update_account_images():
     Updates associated cover_image_id and profile_image_id of caller's account.
     Aborts with 404 if account has since been deleted and aborts with 400 if file is too large.
     '''
-    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
+    acnt = Account.query.filter_by(id=get_jwt_identity(), deleted_at=None).first()
     if acnt is None:
         abort(404, "Your account does not exist.")
 
@@ -141,7 +141,7 @@ def update_account_password():
     Expects a form with fields current-password and new-password.
     Aborts with 400 if either field is missing or if the current-password is not the current password.
     '''
-    acnt = Account.query.filter_by(id=get_jwt_identity(), deletedAt=None).first()
+    acnt = Account.query.filter_by(id=get_jwt_identity(), deleted_at=None).first()
 
     if acnt is None:
         abort(404, "Your account does not exist.")
