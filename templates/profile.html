@@ -1,5 +1,11 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A view of an account's timeline.">
+        <meta name="author" content="Group 6">
+        <link rel="icon" href="/static/public/favicon.png" sizes="32x32" type="image/png">
         <title>{{account['fName']}} {{account['lName']}}'s Profile</title>
     </head>
     <body>
@@ -32,7 +38,7 @@
                 {% if account.profileImageID != None %}
                         <img src="/api/images/{{user.profile_image_id}}" alt="" >
                         {% else %}
-                        <img src="static/public/profile.png" alt="" >
+                        <img src="/static/public/profile.png" alt="" >
                         {% endif %}
             </div>
         </div>
@@ -1360,15 +1366,15 @@ hr {
 }
 
 .home-icon {
-    background-image: url('static/public/home-icon.png'); /* Replace with the path to your home icon image */
+    background-image: url('/static/public/home-icon.png'); /* Replace with the path to your home icon image */
 }
 
 .friends-icon {
-    background-image: url('static/public/friends-icon.png'); /* Replace with the path to your friends icon image */
+    background-image: url('/static/public/friends-icon.png'); /* Replace with the path to your friends icon image */
 }
 
 .settings-icon {
-    background-image: url('static/public/settings-icon.png'); /* Replace with the path to your settings icon image */
+    background-image: url('/static/public/settings-icon.png'); /* Replace with the path to your settings icon image */
 }
 
 .user-dropdown {

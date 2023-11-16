@@ -20,8 +20,8 @@ def login_page():
 
 @pages_bp.route('/register')
 def register_page():
-    """Renders the signup page."""
-    return render_template('register.html')
+    """ Alias for /signup, renders the signup page."""
+    return render_template('signup.html')
 
 @pages_bp.route('/profile')
 @jwt_required()
@@ -158,7 +158,7 @@ def friend_page():
 
 @pages_bp.route('/signup')
 def sign_up_page():
-    """Alias for /register. Kept for ease of access."""
+    """Renders the signup page."""
     return render_template('signup.html')
 
 @pages_bp.route('/settings')
