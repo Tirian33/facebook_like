@@ -29,10 +29,10 @@
 
             <div class="user-avatar user-avatar-right">
                 <!--  second user-avatar content here -->
-                {% if account.profileImageID != None %}
+                {% if user.profile_image_id != None %}
                         <img src="/api/images/{{user.profile_image_id}}" alt="" >
                         {% else %}
-                        <img src="static/public/profile.png" alt="" >
+                        <img src="/static/public/profile.png" >
                         {% endif %}
             </div>
         </div>
