@@ -67,9 +67,9 @@ def make_post():
         abort(400, "You are not friends. You cannot post")
     
     new_post = Post(get_jwt_identity(), request.form.get('textContent'), request.form.get('postedOnID'), request.form.get('sharedPostId'))
-    
+    print(request.files['pic'].mimetype)
     # If there is only one image attachment...
-    if len(request.files.getlist('pic')) == 1 and request.files['pic'].mimetype != 'application/octet-stream':
+    if len(request.files.getlist('pic')) == 1 and ((request.files['pic'].mimetype == 'image/jpeg') or (request.files['pic'].mimetype == 'image/png')):
 
         # Retrieve the image object
         pic = request.files['pic']
@@ -91,9 +91,10 @@ def make_post():
             new_post.associated_image_id = img_id
         else:
             abort(400, "Maximum image file size is 40 KB.")
+  
 
     # If there are multiple image attachments, error out.
-    elif len(request.files.getlist('pic')) > 1:
+    else:
         abort(400, "Only one image may be uploaded at a time.")
     
     db.session.add(new_post)
