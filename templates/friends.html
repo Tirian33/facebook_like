@@ -1,28 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A page to handle all friend related actions.">
+    <meta name="author" content="Group 6">
+    <link rel="icon" href="static/public/favicon.png" sizes="32x32" type="image/png">
+
+    <title>Friends</title>
 </head>
 <body>
     <header class="cover-photo">
        
     </header>
+     <!-- User Account Dropdown -->
+     <div class="user-account">
+        <div class="user-avatars">
+            <div class="user-avatar">
+                <a href="/profile"><img src="static/public/logo.png" alt="" ></a>
+            <!-- <img src="static/public/strawberry.jpg" alt=""> -->
+            </div>
+
+             <!-- Links with icons for Home, Friends, and Settings -->
+             <a href="/profile" class="user-link">
+                <span class="icon home-icon"></span>
+                Home
+            </a>
+        
+            <!-- Friends Icon -->
+            <a href="/friends" class="user-link">
+                <span class="icon friends-icon"></span>
+                Friends
+            </a>
+        
+            <!-- Settings Icon -->
+            <a href="/settings" class="user-link">
+                <span class="icon settings-icon"></span>
+                Settings
+            </a>
+
+            <div class="user-avatar user-avatar-right">
+                <!--  second user-avatar content here -->
+                {% if account.profileImageID != None %}
+                        <img src="/api/images/{{account.profileImageID}}" alt="" >
+                        {% else %}
+                        <img src="static/public/profile.png" alt="" >
+                        {% endif %}
+            </div>
+        </div>
+        <div class="user-dropdown">
+            <button class="user-dropdown-button" id="user-dropdown-button">{{account.username}}</button>
+            <div class="user-dropdown-content" id="user-dropdown-content">
+                <a href="/profile">Profile</a>
+                <a href="/settings">Settings</a>
+                <a href="/" id="logout">Logout</a>
+            </div>
+        </div>
+    </div>
+
     <div class="profile-container">
         <!--profile container  -->
-        <h1 class="profile-name">{{account.username}}</h1>
+       
     </div>
     <div class="content-container">
         <div class="friends-container">
             <h2 class="friends-header">Friends</h2>
             <ul class="friends-list">
+                {% if not friends %}
+                <p>You have no Friend.</p>
+                {% endif %}
                 {% for friend in friends %}
                 <li>
-                    <img src="static/public/profile.png" alt="">
-                    <p>{{friend.username}}</p>
+                    {% if friend.profileImageID != None %}
+                    <img src="/api/images/{{friend.profileImageID}}" alt="" class="mini-profile">
+                    {% else %}
+                    <img src="/static/public/profile.png" alt="" class="'mini-profile">
+                    {% endif %}
+                    <p>{{friend['fName']}} {{friend['lName']}}</p>
                     <div class="friend-buttons">
                         <a href="/timeline/{{friend.id}}">
                         <button class="message-button">View Page</button>
                         </a>
                         <button class="unfriend-button" data-popup-id="unfriend-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Unfriend</button>
+                        <!-- <button class="block-button" data-popup-id="block-popup" data-friend-id="{{friend.id}}" data-friend-code="{{friend.friendCode}}">Block</button> -->
                     </div>
                 </li>
                 {% endfor %}
@@ -34,17 +94,28 @@
             <form method="POST", action="/api/makeFriend", id="newFriendForm">
                 <input type="text" id="friendCode" name="friendCode" placeholder="Enter friend code...">
                 <button class="message-button" id="send-friend-request-button">submit</button>
-                <label for="UserCode" style="left:150px;">     Your code: {{account.id}}</label>
+                <label for="UserCode" style="left:150px;">     Your code: {{ account['friendCode'] }}</label>
             </form>
+            <button class="view-block-list-button" data-popup-id="block-list-popup">View Block List</button>
             <h2 class="pending-requests-header">Pending Requests</h2>
             <ul class="pending-requests-list">
+                {% if not pending %}
+                <p>No Pending Request.</p>
+                {% endif %}
                 {% for pending in pending %}
                 <li>
-                    <img src="static/public/profile.png" alt="">
-                    <p>{{pending.username}}</p>
+                    {% if pending.profileImageID != None %}            
+                    <img src="/api/images/{{pending.profileImageID}}" alt="" class="'mini-profile">
+                    {% else %}
+                    <img src="static/public/profile.png" alt="" class="'mini-profile">
+                    {% endif %}
+                    <a href="/timeline/{{pending.id}}"></a>
+                    <p>{{pending['fName']}} {{pending['lName']}}</p>
+                    </a>
                     <div class="request-buttons">
                         <button class="accept-request-button" data-popup-id="accept-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Accept</button>
                         <button class="decline-request-button" data-popup-id="decline-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Decline</button>
+                        <button class="block-button" data-popup-id="block-popup" data-friend-id="{{pending.id}}" data-friend-code="{{pending.friendCode}}">Block</button> 
                     </div>
                 </li>
                 {% endfor %}
@@ -69,7 +140,7 @@
             <span class="close" id="close-unfriend-popup">&times;</span>
             <h2>Unfriend <span id="unfriend-popup-username"></span></h2>
             <p>Are you sure you want to unfriend this person?</p>
-            <button id="unfriend-popup-confirm">Unfriend</button>
+            <button class="unfriend-popup-confirm" id="unfriend-popup-confirm">Unfriend</button>
         </div>
     </div>
 
@@ -79,7 +150,7 @@
             <span class="close" id="close-accept-popup">&times;</span>
             <h2>Accept Friend Request from <span id="accept-popup-username"></span></h2>
             <p>Are you sure you want to accept this friend request?</p>
-            <button id="accept-popup-confirm">Accept</button>
+            <button class="accept-popup-confirm" id="accept-popup-confirm">Accept</button>
         </div>
     </div>
 
@@ -89,12 +160,82 @@
             <span class="close" id="close-decline-popup">&times;</span>
             <h2>Decline Friend Request from <span id="decline-popup-username"></span></h2>
             <p>Are you sure you want to decline this friend request?</p>
-            <button id="decline-popup-confirm">Decline</button>
+            <button class="decline-popup-confirm" id="decline-popup-confirm">Decline</button>
         </div>
     </div>
 
+        <!-- Block Pop-up -->
+    <div id="block-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-block-popup">&times;</span>
+            <h2>Block <span id="block-popup-username"></span></h2>
+            <p>Are you sure you want to block this person?</p>
+            <button class="block-popup-confirm" id="block-popup-confirm">Block</button>
+        </div>
+    </div>
+
+            <!-- Block List Pop-up -->
+        <div id="block-list-popup" class="popup">
+            <div class="popup-content">
+                <span class="close" id="close-block-list-popup">&times;</span>
+                <h2>Blocked Friends</h2>
+                <ul class="block-list">
+                    <!-- List of blocked friends will be  populated here -->
+                    {% if not blocked %}
+                    <p>No blocked friends.</p>
+                    {% else %}
+                     {% for blocked in blocked %}
+                    <p>{{blocked.username}}</p>
+                <button class="block-list-popup-confirm" id="block-list-popup-confirm" data-friend-id="{{blocked.id}}" data-friend-code="{{blocked.friendCode}}">Unblock</button>
+                {% endfor %}
+                {% endif %}
+            </ul>
+            </div>
+        </div>
+
     <!-- Your script tag for JavaScript -->
     <script>
+
+            document.addEventListener("DOMContentLoaded", function() {
+                        // User Account Dropdown
+                        const userDropdownButton = document.getElementById("user-dropdown-button");
+                        const userDropdownContent = document.getElementById("user-dropdown-content");
+
+                        userDropdownButton.addEventListener("click", () => {
+                            userDropdownContent.classList.toggle("show");
+                        });
+
+                        // Close the dropdown if the user clicks outside of it
+                        window.addEventListener("click", (event) => {
+                            if (event.target !== userDropdownButton) {
+                                userDropdownContent.classList.remove("show");
+                            }
+                        });
+                    });
+
+                    document.addEventListener("DOMContentLoadeded",function(){
+                    const myButton = document.getElementById('block-list-popup-confirm');
+
+                    myButton.addEventListener('click', function () {
+                        const friendCode = myButton.getAttribute('data-friend-code');
+                        fetch('/api/unblockUser', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ friendCode }),
+                        }).then(function (res) {
+                            if (res.status == 200) {
+                                alert('Friend unblocked successfully.');
+                                location.reload();
+                            } else {
+                                alert('Unable to unblock friend.');
+                            }
+                        }).catch(function (error) {
+                            console.log("ERROR ON UNBLOCKING FRIEND:", error);
+                        });
+                    });
+                });   
+               
+
         //Friend Request Maker
         var friendForm = document.getElementById("newFriendForm");
         friendForm.addEventListener("submit", function(event){
@@ -126,7 +267,33 @@
         });
 
         document.addEventListener("DOMContentLoaded", function() {
-            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button");
+            //Logout button
+            document.getElementById('logout').addEventListener('click', function(event) {
+                event.preventDefault();
+
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "content": "yes" }), 
+                }).then(function (res) {
+                        if (res.status == 200) {
+                            window.location.href = '/login';
+                        } else {
+                            alert('An Error has occured.');
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log("ERROR ON LOGOUT:", error);
+                    });
+
+            });
+
+
+
+
+
+
+            const openPopupButtons = document.querySelectorAll(".message-button, .accept-request-button, .decline-request-button, .unfriend-button , .block-button , .view-block-list-button");
             const closePopupButtons = document.querySelectorAll(".close");
             const popups = document.querySelectorAll(".popup");
 
@@ -137,7 +304,29 @@
                     popup.style.display = "flex";
                     console.log("Clicked a " + popupId + " button.");
 
-                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup") {
+                    if (popupId === "block-list-popup") {
+                    const myButton = document.getElementById('block-list-popup-confirm');
+
+                    myButton.addEventListener('click', function () {
+                        const friendCode = myButton.getAttribute('data-friend-code');
+                        fetch('/api/unblockUser', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ friendCode }),
+                        }).then(function (res) {
+                            if (res.status == 200) {
+                                alert('Friend unblocked successfully.');
+                                location.reload();
+                            } else {
+                                alert('Unable to unblock friend.');
+                            }
+                        }).catch(function (error) {
+                            console.log("ERROR ON UNBLOCKING FRIEND:", error);
+                        });
+                    });
+                }
+
+                    if (popupId === "unfriend-popup" || popupId === "accept-popup" || popupId === "decline-popup" || popupId==="block-popup" ) {
                         const friendId = button.getAttribute("data-friend-id");
                         const friendName = button.parentElement.previousElementSibling.innerText;
                         const friendCode = button.getAttribute("data-friend-code");
@@ -164,7 +353,49 @@
                                     .catch(function (error) {
                                         console.log("ERROR ON REMOVE FRIEND:", error);
                                     });
-                            } else if (popupId === "decline-popup") {
+       
+                            } else if (popupId === "block-popup") {
+                                fetch('/api/blockUser', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend blocked successfully.');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to block friend.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON BLOCKING FRIEND:", error);
+                                    });
+                            
+                                 }
+                                 else if (popupId == "block-list-popup") {
+                                    alert('Unable to unblock friend.');
+                                    const myButton = document.getElementById('block-list-popup-confirm');
+                                    
+                                   // myButton.addEventListener('click', function() {
+                                    const friendCode = myButton.getAttribute('data-friend-code');
+                                    fetch('/api/unblockUser', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ friendCode }), 
+                                }).then(function (res) {
+                                        if (res.status == 200) {
+                                            alert('Friend unblocked successfully.');
+                                            location.reload();
+                                        } else {
+                                            alert('Unable to unblock friend.');
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        console.log("ERROR ON UNBLOCKING FRIEND:", error);
+                                    });
+                                // });
+                                 }
+                                 else if (popupId === "decline-popup") {
                                 //action should call makeFriend
                                 fetch('/api/declineFriend', {
                                     method: 'POST',
@@ -214,7 +445,8 @@
                     });
                 });
             });
-        });
+     
+    });
     </script>
 </body>
 </html>
@@ -223,6 +455,8 @@
 
 <style>
 .content-container {
+    margin-top: 60px;
+    padding: 20px;
     display: flex;
     justify-content: space-between;
 }
@@ -256,10 +490,16 @@
 }
 
 .friends-list img {
-    width: 50px;
-    height: 50px;
+    border: 2px solid #555;
+    display: flex;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-top: 15px;
+    margin-left: 15px;
+    overflow: hidden;
+    position: left;
+    object-fit: cover;
 }
 
 .friends-list p {
@@ -318,14 +558,61 @@
 }
 
 .pending-requests-list img {
-    width: 50px;
-    height: 50px;
+    border: 2px solid #555;
+    display: flex;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-top: 15px;
+    margin-left: 15px;
+    overflow: hidden;
+    position: left;
+    object-fit: cover;
 }
 
 .pending-requests-list p {
     font-size: 16px;
+}
+
+.block-button {
+    padding: 5px 10px;
+    background-color: #bb0faf;  
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px;
+}
+
+.block-button:hover {
+    background-color: #151616;  /* Darker  on hover */
+}
+
+/* style for the block popup */
+#block-popup {
+    /*  popup styles */
+    display: none;
+}
+
+#block-popup .popup-content {
+    /*  popup content styles */
+}
+
+#block-popup-confirm {
+    background-color: #e74c3c; /* Red for Block */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+}
+
+#block-popup-confirm:hover {
+    filter: brightness(0.8);
+}
+
+#block-list-popup {
+    display: none;
 }
 
 .request-buttons {
@@ -353,6 +640,33 @@
     filter: brightness(0.8);
 }
 
+.decline-popup-confirm {
+    background-color: #f44336; /* Red for Decline */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+   
+}
+.unfriend-popup-confirm {
+    background-color: #f44336; /* Red for Decline */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+   
+}
+.accept-popup-confirm {
+    background-color: #4caf50; /* Red for Decline */
+    padding: 5px 10px;
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    
+}
+.accept-popup-confirm:hover, .decline-popup-confirm:hover, .unfriend-popup-confirm:hover {
+    filter: brightness(0.8);
+}
 
 .popup {
     display: none;
@@ -384,6 +698,213 @@
     right: 10px;
     font-size: 20px;
     cursor: pointer;
+}
+.user-account {
+    background-color: #1877f2; 
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 98%;
+    height: 60px; 
+    z-index: 1; 
+    border-radius: 1px 15px 15px 15px;
+
+}
+
+.user-avatars {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.user-avatar-right {
+    margin-left: auto;
+}
+
+.user-avatar-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar {
+    border: 2px solid #555;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.user-avatar img {
+
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+ .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+} 
+
+.user-link {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.user-link .icon {
+    margin-right: 5px; /* Adjust the margin as needed */
+}
+
+/* Adjust the icon style as needed */
+.icon {
+    display: inline-block;
+    width: 20px; /* Adjust the width as needed */
+    height: 20px; /* Adjust the height as needed */
+    border-radius: 50%; /* Use this for a circular icon */
+    background-size: cover;
+    background-position: center;
+}
+
+.home-icon {
+    background-image: url('static/public/home-icon.png'); /* Replace with the path to your home icon image */
+}
+
+.friends-icon {
+    background-image: url('static/public/friends-icon.png'); /* Replace with the path to your friends icon image */
+}
+
+.settings-icon {
+    background-image: url('static/public/settings-icon.png'); /* Replace with the path to your settings icon image */
+}
+
+.user-dropdown {
+    position: absolute;
+    right: 25px;
+}
+
+.user-dropdown-button {
+    border-radius: 10%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 0;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.user-dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.user-dropdown-content a:hover {
+    background-color: #f2f2f2;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.show {
+    display: block;
+}
+
+#block-list-popup .popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-height: 70vh; /* Set the maximum height */
+    overflow-y: auto; /* Enable vertical scroll if content exceeds max height */
+}
+
+.view-block-list-button {
+    /* Add your desired styling properties */
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text color */
+    padding: 10px 20px; /* Padding for better appearance */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    cursor: pointer; /* Add pointer cursor on hover */
+}
+
+.view-block-list-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+
+/* styles for the block list */
+.block-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto; /* Enable vertical scroll if content exceeds max height */
+}
+
+.block-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.block-list p {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.unblock-button {
+    padding: 5px 10px;
+    background-color: #3498db; /* Blue for Unblock */
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unblock-button:hover {
+    filter: brightness(0.8);
+}
+
+.block-list-popup-confirm {
+    padding: 5px 10px;
+    background-color: #3498db; /* Blue for Unblock */
+    color: #ffffff; 
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.block-list-popup-confirm:hover {
+    filter: brightness(0.8);
 }
 
 </style>

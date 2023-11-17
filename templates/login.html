@@ -1,63 +1,86 @@
-<div class="container">
-    <form method="POST", action="/login", id="loginForm">
-      <div class="row">
-        <h2 style="text-align:center">Login to X!</h2>
-       
-        <div class="col">
-          <div class="hide-md-lg">
-          </div>
-  
-          <input type="text" name="username" placeholder="Username" id="username" required>
-          <input type="password" name="password" placeholder="Password" id="password" required>
-          <input type="submit" value="Login", id="loginButton">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="Login page for Y">
+      <meta name="author" content="Group 6">
+      <link rel="icon" href="static/public/favicon.png" sizes="32x32" type="image/png">
+      <title>Login to Y</title>
+  </head>
+  <body>
+    {% if redirectReason %}
+    <div>
+      {% if redirectReason == "noTkn" %}
+        You must be signed in to access that page.
+      {% endif %}
 
-        </div>
-
-      </div>
-    </form>
-</div>
-  
-  <div class="bottom-container">
-    <div class="row">
-      <div class="col">
-        <a href="/signup" style="color:white" class="btn">New to Y? Sign up</a>
-      </div>
+      {% if redirectReason == "tknExp" %}
+        Your token has expired you must log back in.
+      {% endif %}
     </div>
-  </div>
-<script>
-    document.querySelector('#loginButton').addEventListener('click', function () {
-        
-        //Prevent normal unhandled submit
-        event.preventDefault();
+    {% endif %}
 
-        //Grab the loginForm element
-        var dict = {};
-        var loginData = new FormData(document.querySelector('#loginForm'));
-        loginData.forEach((value, key) => dict[key] = value);
-        
-        //Perform the action of submit button
-        fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(dict), 
-        }).then(function (res){ 
-            if (res.status == 200)
-            {
-                //JWT should be set so lets go to the home page
-                window.location.href = '/profile';
-            }
-            else
-            {
-                //Make alert pop up
-                alert('Incorrect username or password. Please try again.');
-            }
-        }).catch(function(error){
-            //Hopefully we never reach this
-            console.log("ERROR ON LOGIN:", error);
-        })
-    });
-</script>
+    <div class="container">
+        <form method="POST", action="/login", id="loginForm">
+          <div class="row">
+            <h2 style="text-align:center">Login to Y!</h2>
+          
+            <div class="col">
+              <div class="hide-md-lg">
+              </div>
+      
+              <input type="text" name="username" placeholder="Username" id="username" required>
+              <input type="password" name="password" placeholder="Password" id="password" required>
+              <input type="submit" value="Login", id="loginButton">
 
+            </div>
+
+          </div>
+        </form>
+    </div>
+      
+      <div class="bottom-container">
+        <div class="row">
+          <div class="col">
+            <a href="/signup" style="color:white" class="btn">New to Y? Sign up</a>
+          </div>
+        </div>
+      </div>
+    <script>
+        document.querySelector('#loginButton').addEventListener('click', function () {
+            
+            //Prevent normal unhandled submit
+            event.preventDefault();
+
+            //Grab the loginForm element
+            var dict = {};
+            var loginData = new FormData(document.querySelector('#loginForm'));
+            loginData.forEach((value, key) => dict[key] = value);
+            
+            //Perform the action of submit button
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(dict), 
+            }).then(function (res){ 
+                if (res.status == 200)
+                {
+                    //JWT should be set so lets go to the home page
+                    window.location.href = '/profile';
+                }
+                else
+                {
+                    //Make alert pop up
+                    alert('Incorrect username or password. Please try again.');
+                }
+            }).catch(function(error){
+                //Hopefully we never reach this
+                console.log("ERROR ON LOGIN:", error);
+            })
+        });
+    </script>
+  </body>
 
 <style>
     * {box-sizing: border-box}
@@ -148,3 +171,4 @@ input[type=submit]:hover {
   }
 }
   </style>
+</html>

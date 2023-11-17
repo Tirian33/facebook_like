@@ -1,17 +1,72 @@
-<html>
+
+<html lang="en">
     <head>
-        <link rel="stylesheet" href="profile.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A view of an account's timeline.">
+        <meta name="author" content="Group 6">
+        <link rel="icon" href="/static/public/favicon.png" sizes="32x32" type="image/png">
         <title>{{account['fName']}} {{account['lName']}}'s Profile</title>
     </head>
     <body>
+        <!-- User Account Dropdown -->
+        <div class="user-account">
+        <div class="user-avatars">
+            <div class="user-avatar">               
+                <a href="/profile"> <img src="/static/public/logo.png" alt=""></a>
+            </div>
+             <!-- Links with icons for Home, Friends, and Settings -->
+             <a href="/profile" class="user-link">
+                <span class="icon home-icon"></span>
+                Home
+            </a>
+        
+            <!-- Friends Icon -->
+            <a href="/friends" class="user-link">
+                <span class="icon friends-icon"></span>
+                Friends
+            </a>
+        
+            <!-- Settings Icon -->
+            <a href="/settings" class="user-link">
+                <span class="icon settings-icon"></span>
+                Settings
+            </a>
+
+            <div class="user-avatar user-avatar-right">
+                <!--  second user-avatar content here -->
+                {% if user.profile_image_id != None %}
+                        <img src="/api/images/{{user.profile_image_id}}" alt="" >
+                        {% else %}
+                        <img src="/static/public/profile.png" alt="">
+                        {% endif %}
+            </div>
+        </div>
+            <div class="user-dropdown">
+                <button class="user-dropdown-button" id="user-dropdown-button">{{user.username}}</button>
+                <div class="user-dropdown-content" id="user-dropdown-content">
+                    <a href="/friends">View Friends</a>
+                    <a href="/settings">Settings</a>
+                    <a href="/" id="logout">Logout</a>
+                </div>
+            </div>
+        </div>
         <div class="profilecard">
             <div class="infoimages">
-                <img src="static/public/Triangles.png">
-                <img src="static/public/terminator.jpg">
+                {% if account.coverImageID != None %}
+                        <img src='/api/images/{{account.coverImageID}}'/>
+                {% else %}
+                        <img src="/static/public/cover-page.jpg">
+                {% endif %}
+                {% if account.profileImageID != None %}
+                        <img src='/api/images/{{account.profileImageID}}'/>
+                {% else %}
+                        <img src="/static/public/profile.png"/> 
+                {% endif %}
             </div>
             <div class="profileinfo">
                 <span>{{account['fName']}} {{account['lName']}}</span>
-                <span>Username: {{account['username']}}</span>
+                <span>{{account['bio']}} </span>
                 <span>Friend Code: {{ account['friendCode'] }}</span>
             </div>
             <hr>
@@ -31,6 +86,7 @@
     </body>
 
     &nbsp
+   
     <body>
         <div class="profilecard">
             <form method="POST" action="/api/post" enctype="multipart/form-data" id="postForm">
@@ -41,7 +97,7 @@
                     </div>
                     <input type="text" name="textContent" placeholder="What's on your mind?" id="username" required>
                     <input type="text" id="sharedPostId" name="sharedPostId" value="None" style="display: none;"><br>
-                    <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                    <input type="text" id="postedOnID" value={{pageOwner}} name="postedOnID" style="display: none;">
                     <input type="file" id="actual-btn" name="pic"/>
                     <input type="submit" value="Create Post", id="loginButton">
                   </div>
@@ -51,40 +107,86 @@
     </body>
 
 
-    {%for post in timeline %}
+    {% for post in timeline %}
+    {% if ((postable[post.posterID]) and (postable[post.sharedPostAccId])) or ((postable[post.posterID]) and (post.sharedPostID == 0)) %}
     &nbsp
     <body>
         <div class="postcard">
             <div class="postinfo">
                 <div class="post-header">
                     <div class="post-profile">
-                        <img src="static/public/terminator.jpg" class="mini-profile">
+                        {% if postable[post.posterID|string + "-p"] != None %}
+                        <img src='/api/images/{{postable[post.posterID|string + "-p"]}}' class="mini-profile"/>
+                            {% else %}
+                            <img src="/static/public/profile.png" class="mini-profile"/>    
+                        {% endif %}
                     </div>
                     <div class="post-header-text">
+                        {% if post.posterID == user.id %}
                         <div class="post-poster">
-                        <span>{{postable[post.posterID]}}</span>
+                            <a href="/profile" style="color:black" class="btn">{{postable[post.posterID]}}</a>
                         </div>
-                        {% if post.createdAt %}
+                        {% else %}
+                        <div class="post-poster">
+                            <a href="/timeline/{{post.posterID}}" style="color:black" class="btn">{{postable[post.posterID]}}</a>
+                        </div>
+                        {% endif %}
+                        {% if (post.createdAt) and (post.editedAt == None) %}
                         <div class="post-datetime">
                         <span> {{ post.createdAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
                         </div>
-                        {% endif %}
 
+                        {% elif post.editedAt %}
+                        <div class="post-datetime">
+                        <span> Edited at {{ post.editedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                        </div>
+                        {% endif %}
+                    </div> 
+                </div>
+
+               
+                <!-- Shared post render -->
+                {% if post.sharedPostID %}
+                <div style="margin-left: 40px">
+                    <span>Shared the following post:</span>
+                </div>
+                <div class="postinfo" style="border: 1px solid grey; border-radius:20px">
+                    <div class="post-header">
+                        <div class="post-profile">
+                            {% if postable[post.sharedPostAccId|string + "-p"] != None %}
+                            <img src='/api/images/{{postable[post.sharedPostAccId|string + "-p"]}}' class="mini-profile"/>
+                            {% else %}
+                            <img src="/static/public/profile.png" class="mini-profile"/>    
+                            {% endif %}
+                        </div>
+                        <div class="post-header-text">
+                            <div class="post-poster">
+                                {% if post.sharedPostAccId != user.id %}
+                                <a href="/timeline/{{post.sharedPostAccId}}" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
+                                {% else %}
+                                <a href="/profile" style="color:black" class="btn">{{postable[post.sharedPostAccId]}}</a>
+                                {% endif %}
+                            </div>
+                            {% if post.sharedPostCreatedAt %}
+                            <div class="post-datetime">
+                                <span> {{ post.sharedPostCreatedAt.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                            </div>
+                            {% endif %}
+                        </div> 
                     </div>
-                    {% if (post.posterID == user) or (pageOwner == user) %}
+                <div class="post-content" style="border:None">
+                    <div class="post-text">
+                    <span>{{post.sharedPostTxt}}</span>
+                    </div>
+                    {% if post.sharedPostImgId != None %}
                     <div>
-                    <form  class="deleteForm", id="{{post.id}}">
-                        <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
-                        <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
-                        <button class="delete-button" type="submit">
-                            <svg xmlns="static/public/delete-button-svgrepo-com.svg" width="25" height="25" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </form>
+                        <img src='/api/images/{{post.sharedPostImgId}}' class="imghandle"/>
+                        <span></span>
                     </div>
                     {% endif %}
                 </div>
+                </div>
+                {% else %}
                 <div class="post-content">
                     <div class="post-text">
                     <span>{{post.textContent}}</span>
@@ -95,30 +197,213 @@
                         <span></span>
                     </div>
                     {% endif %}
-                    </div>
                 </div>
+                {% endif %}
+        
+                
+                <div class="post-response">
+                    <div>
+                        {% if likedPosts.count(post.id) > 0 %}
+                        <form  class="likeForm", id="{{ post.id }}" user-already-liked="True" reaction-id={{userReactions[post.id]}}>
+                            <input type="text" id="reactionType" value={{1}} name="reactionType" style="display: none;">
+                            <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
+                            <button class="like-button" type="submit" style="background-color: rgb(207, 245, 212);transform: scale(1.2)">
+                        {% else %}
+                        <form  class="likeForm", id="{{ post.id }}", user-already-liked="False">
+                            <input type="text" id="reactionType" value={{1}} name="reactionType" style="display: none;">
+                            <input type="text" id="respTo" value= {{post.id}} name="respTo" style="display: none;">
+                            <button class="like-button" type="submit">
+                        {% endif %}
+                                <svg height="25" width="25" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                                    viewBox="0 0 49.625 49.625" xml:space="preserve">
+                                     <g>
+                                        <path style="fill:#0e6e1d;" d="M12.94,26.221c-3.98,0-7.96,0-11.94,0c-0.545,0-1,0.455-1,1c0,6.218,0,12.436,0,18.654
+                                            c0,0.746,0,1.491,0,2.237c0,0.545,0.455,1,1,1c3.98,0,7.96,0,11.94,0c0.273,0,0.476-0.102,0.633-0.244
+                                            c0.024-0.018,0.049-0.033,0.071-0.053c0.018-0.02,0.032-0.043,0.048-0.064c0.144-0.158,0.247-0.362,0.247-0.638
+                                            c0-6.218,0-12.436,0-18.654c0-0.746,0-1.491,0-2.237C13.94,26.676,13.485,26.221,12.94,26.221z M2,28.221c3.313,0,6.627,0,9.94,0
+                                            c0,5.885,0,11.769,0,17.654c0,0.413,0,0.825,0,1.237c-3.313,0-6.627,0-9.94,0c0-5.885,0-11.769,0-17.654
+                                            C2,29.046,2,28.633,2,28.221z M48.711,34.767c0-0.342,0-0.683,0-1.025c0.928-0.664,0.907-2.425,0.911-3.459
+                                            c0.004-0.943,0.045-1.912-0.572-2.679c-0.164-0.203-0.383-0.321-0.619-0.402c0-0.063,0-0.126,0-0.189
+                                            c0.03-0.003,0.059-0.005,0.089-0.008c0.402-0.035,0.901-0.275,0.964-0.734c0.161-1.167,0.074-2.353,0.087-3.527
+                                            c0.016-1.515-0.476-2.767-1.748-3.647c-1.318-0.912-3.153-0.71-4.684-0.735c-3.415-0.057-6.831-0.121-10.246-0.185
+                                            c0.703-0.893,1.405-1.787,2.106-2.682c1.358-1.736,2.742-3.374,3.678-5.384c0.93-1.997,1.654-4.491,0.797-6.643
+                                            c-0.603-1.514-1.916-2.644-3.545-2.895c-1.56-0.24-3.17,0.208-4.291,1.348c-0.485,0.494-0.763,1.097-1.089,1.694
+                                            c-0.341,0.624-0.71,1.234-1.083,1.839c-2.25,3.654-4.71,7.183-7.159,10.706c-2.318,3.335-4.662,6.653-7.038,9.948
+                                            c-0.006,0.008-0.005,0.018-0.01,0.026c-0.028,0.05-0.045,0.108-0.064,0.166c-0.033,0.092-0.057,0.181-0.057,0.279
+                                            c0,0.012-0.007,0.021-0.007,0.033c0,6.221,0,12.442,0,18.663c0,0.946,0,1.893,0,2.839c0,0.545,0.455,1,1,1
+                                            c6.102,0,12.205,0,18.307,0c2.924,0,5.848,0,8.772,0c1.756,0,3.407-0.741,4.349-2.296c0.521-0.86,0.432-2.152,0.519-3.125
+                                            c0.021-0.238,0.043-0.476,0.064-0.714c0.02-0.226,0.04-0.451,0.061-0.677c0.007-0.075,0.014-0.151,0.021-0.226
+                                            c0.004-0.008,0.007-0.011,0.013-0.027c0.002-0.006,0.004-0.011,0.006-0.017c1.312-0.586,1.354-2.589,1.368-3.807
+                                            c0.01-0.905,0.094-1.986-0.315-2.811C49.156,35.131,48.956,34.924,48.711,34.767z M47.908,36.508c-0.006,0-0.012-0.002-0.018-0.003
+                                            c0.065-0.005,0.129-0.001,0.203-0.019C48.036,36.5,47.948,36.505,47.908,36.508z M47.694,29.056c-0.001,0-0.002-0.001-0.003-0.002
+                                            c0.028,0,0.056,0.001,0.083,0.003C47.737,29.055,47.712,29.055,47.694,29.056z M47.243,40.268c0.057-0.03,0.086-0.045,0.103-0.054
+                                            c-0.003,0.004-0.007,0.009-0.009,0.012C47.325,40.228,47.298,40.239,47.243,40.268z M47.462,40.043
+                                            c-0.026,0.054-0.035,0.078-0.038,0.091c-0.008,0.004-0.024,0.017-0.059,0.055c-0.013,0.014-0.011,0.015-0.018,0.023
+                                            c-0.03,0.013-0.094,0.041-0.139,0.047c-0.352,0.048-0.589,0.398-0.698,0.698c-0.52,1.428-0.47,3.148-0.605,4.654
+                                            c0,0.005,0,0.006-0.001,0.011c-0.005,0.019-0.011,0.039-0.019,0.072c-0.001,0.003-0.111,0.21-0.126,0.235
+                                            c-0.145,0.239-0.378,0.428-0.588,0.606c-0.372,0.316-0.928,0.579-1.421,0.579c-0.221,0-0.443,0-0.664,0c-3.003,0-6.007,0-9.01,0
+                                            c-5.648,0-11.296,0-16.944,0c0-5.888,0-11.775,0-17.663c0-0.842,0-1.685,0-2.527c3.987-5.532,7.925-11.108,11.696-16.792
+                                            c1.009-1.521,2.01-3.052,2.94-4.623c0.307-0.518,0.597-1.044,0.868-1.581c0.075-0.149,0.166-0.288,0.261-0.424
+                                            c-0.124,0.177,0.153-0.17,0.21-0.228c0.056-0.057,0.116-0.11,0.175-0.163c0.025-0.022,0.022-0.021,0.031-0.03
+                                            c0.008-0.006,0.003-0.002,0.015-0.01c0.148-0.109,0.308-0.202,0.47-0.287c0.042-0.022,0.085-0.041,0.127-0.06
+                                            c0.011-0.002,0.114-0.044,0.14-0.054c0.148-0.052,0.301-0.091,0.454-0.125c0.043-0.009,0.086-0.016,0.13-0.023
+                                            c0.012,0,0.119-0.015,0.149-0.018c0.183-0.015,0.367-0.013,0.55-0.003c0.044,0.002,0.087,0.008,0.131,0.012
+                                            c0.01,0.003,0.119,0.019,0.149,0.025c0.155,0.03,0.306,0.074,0.456,0.123c0.019,0.006,0.09,0.034,0.128,0.048
+                                            c0.047,0.022,0.095,0.043,0.141,0.067c0.166,0.084,0.322,0.185,0.473,0.294c-0.181-0.13,0.168,0.159,0.225,0.216
+                                            c0.058,0.059,0.113,0.121,0.167,0.184c0.013,0.015,0.009,0.009,0.017,0.019c0.007,0.011,0.006,0.012,0.031,0.047
+                                            c0.279,0.394,0.325,0.545,0.431,0.906c0.137,0.463,0.139,0.621,0.146,1.091c0.008,0.531-0.068,1.005-0.186,1.517
+                                            c-0.489,2.127-1.655,3.913-2.966,5.604c-0.789,1.017-1.583,2.03-2.378,3.042c-0.352,0.448-0.704,0.895-1.056,1.343
+                                            c-0.409,0.519-1.009,1.099-0.787,1.83c0.453,1.495,2.06,1.298,3.27,1.32c1.965,0.037,3.929,0.073,5.894,0.108
+                                            c1.823,0.033,3.646,0.072,5.469,0.091c1.076,0.011,2.118,0.361,2.422,1.497c0.164,0.611,0.042,1.38,0.046,2.011
+                                            c0.002,0.397,0.001,0.793-0.007,1.189c-0.045,0.004-0.091,0.008-0.136,0.012c-0.543,0.047-1,0.419-1,1c0,0.653,0,1.306,0,1.959
+                                            c0,0.545,0.455,1,1,1c0.052,0,0.103-0.002,0.155-0.003c0.007,0.09,0.007,0.182,0.011,0.263c0.016,0.321,0.024,0.643,0.025,0.964
+                                            c0.002,0.552,0.042,1.171-0.055,1.714c-0.002,0.012-0.003,0.013-0.005,0.023c-0.661,0.049-0.935,0.595-0.852,1.11
+                                            c0,0.798,0,1.595,0,2.393c0,0.491,0.376,0.891,0.848,0.969c0.002,0.009,0.006,0.017,0.007,0.025
+                                            c0.067,0.581,0.052,1.198,0.045,1.784C47.601,38.837,47.697,39.555,47.462,40.043z"/>
+                                    </g>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
 
+                    <!-- Can't share posts already on your own timeline -->
+                    {% if account.id != user.id %} 
+                    <!-- Can't share posts you made -->
+                    {% if post.posterID != user.id %}
+                    <div>
+                        <form  class="shareForm", id="{{post.id}}">
+                            <!-- Non-shared post behavior -->
+                            {% if post.sharedPostID == 0 %}
+                            <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.id}}" style="display: none;">
+                            <!-- Shared post behavior -->
+                            {% else %}
+                            <input type="text" id="sharedPostId" name="sharedPostId" value="{{post.sharedPostID}}" style="display: none;">
+                            <!-- End behavior logic -->
+                            {% endif %}
+                            <input type="text" id="postedOnID" value= {{user.id}} name="postedOnID" style="display: none;">
+                            <button class="share-button" type="submit">
+                                <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                                viewBox="0 0 227.216 227.216" xml:space="preserve">
+                                    <g>
+                                        <g>
+                                            <path d="M175.897,141.476c-13.249,0-25.11,6.044-32.98,15.518l-51.194-29.066c1.592-4.48,2.467-9.297,2.467-14.317
+                                                    c0-5.019-0.875-9.836-2.467-14.316l51.19-29.073c7.869,9.477,19.732,15.523,32.982,15.523c23.634,0,42.862-19.235,42.862-42.879
+                                                    C218.759,19.229,199.531,0,175.897,0C152.26,0,133.03,19.229,133.03,42.865c0,5.02,0.874,9.838,2.467,14.319L84.304,86.258
+                                                    c-7.869-9.472-19.729-15.514-32.975-15.514c-23.64,0-42.873,19.229-42.873,42.866c0,23.636,19.233,42.865,42.873,42.865
+                                                    c13.246,0,25.105-6.042,32.974-15.513l51.194,29.067c-1.593,4.481-2.468,9.3-2.468,14.321c0,23.636,19.23,42.865,42.867,42.865
+                                                    c23.634,0,42.862-19.23,42.862-42.865C218.759,160.71,199.531,141.476,175.897,141.476z M175.897,15
+                                                    c15.363,0,27.862,12.5,27.862,27.865c0,15.373-12.499,27.879-27.862,27.879c-15.366,0-27.867-12.506-27.867-27.879
+                                                    C148.03,27.5,160.531,15,175.897,15z M51.33,141.476c-15.369,0-27.873-12.501-27.873-27.865c0-15.366,12.504-27.866,27.873-27.866
+                                                    c15.363,0,27.861,12.5,27.861,27.866C79.191,128.975,66.692,141.476,51.33,141.476z M175.897,212.216
+                                                    c-15.366,0-27.867-12.501-27.867-27.865c0-15.37,12.501-27.875,27.867-27.875c15.363,0,27.862,12.505,27.862,27.875
+                                                    C203.759,199.715,191.26,212.216,175.897,212.216z"/>
+                                    </g>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    {% else %}
+                    <div>
+                        <button class="share-button" type="submit" style="background-color: rgb(245, 237, 207);transform: scale(1.2)">
+                            <svg fill="#c28619" height="25" width="25" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                            viewBox="0 0 227.216 227.216" xml:space="preserve">
+                                <g>
+                                    <g>
+                                        <path d="M175.897,141.476c-13.249,0-25.11,6.044-32.98,15.518l-51.194-29.066c1.592-4.48,2.467-9.297,2.467-14.317
+                                                c0-5.019-0.875-9.836-2.467-14.316l51.19-29.073c7.869,9.477,19.732,15.523,32.982,15.523c23.634,0,42.862-19.235,42.862-42.879
+                                                C218.759,19.229,199.531,0,175.897,0C152.26,0,133.03,19.229,133.03,42.865c0,5.02,0.874,9.838,2.467,14.319L84.304,86.258
+                                                c-7.869-9.472-19.729-15.514-32.975-15.514c-23.64,0-42.873,19.229-42.873,42.866c0,23.636,19.233,42.865,42.873,42.865
+                                                c13.246,0,25.105-6.042,32.974-15.513l51.194,29.067c-1.593,4.481-2.468,9.3-2.468,14.321c0,23.636,19.23,42.865,42.867,42.865
+                                                c23.634,0,42.862-19.23,42.862-42.865C218.759,160.71,199.531,141.476,175.897,141.476z M175.897,15
+                                                c15.363,0,27.862,12.5,27.862,27.865c0,15.373-12.499,27.879-27.862,27.879c-15.366,0-27.867-12.506-27.867-27.879
+                                                C148.03,27.5,160.531,15,175.897,15z M51.33,141.476c-15.369,0-27.873-12.501-27.873-27.865c0-15.366,12.504-27.866,27.873-27.866
+                                                c15.363,0,27.861,12.5,27.861,27.866C79.191,128.975,66.692,141.476,51.33,141.476z M175.897,212.216
+                                                c-15.366,0-27.867-12.501-27.867-27.865c0-15.37,12.501-27.875,27.867-27.875c15.363,0,27.862,12.505,27.862,27.875
+                                                C203.759,199.715,191.26,212.216,175.897,212.216z"/>
+                                </g>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+
+                    {% if (post.posterID == user.id) or (pageOwner == user.id) %}
+                    <div>
+                        <button class="edit-button" type="submit" id="{{post.id}}">
+                            <svg class="svg2" fill="#0056b3" stroke-width="1" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                                width="25" height="25" viewBox="0 0 494.936 494.936"
+                                xml:space="preserve">
+                            <g>
+                                <g>
+                                    <path d="M389.844,182.85c-6.743,0-12.21,5.467-12.21,12.21v222.968c0,23.562-19.174,42.735-42.736,42.735H67.157
+                                        c-23.562,0-42.736-19.174-42.736-42.735V150.285c0-23.562,19.174-42.735,42.736-42.735h267.741c6.743,0,12.21-5.467,12.21-12.21
+                                        s-5.467-12.21-12.21-12.21H67.157C30.126,83.13,0,113.255,0,150.285v267.743c0,37.029,30.126,67.155,67.157,67.155h267.741
+                                        c37.03,0,67.156-30.126,67.156-67.155V195.061C402.054,188.318,396.587,182.85,389.844,182.85z"/>
+                                    <path d="M483.876,20.791c-14.72-14.72-38.669-14.714-53.377,0L221.352,229.944c-0.28,0.28-3.434,3.559-4.251,5.396l-28.963,65.069
+                                        c-2.057,4.619-1.056,10.027,2.521,13.6c2.337,2.336,5.461,3.576,8.639,3.576c1.675,0,3.362-0.346,4.96-1.057l65.07-28.963
+                                        c1.83-0.815,5.114-3.97,5.396-4.25L483.876,74.169c7.131-7.131,11.06-16.61,11.06-26.692
+                                        C494.936,37.396,491.007,27.915,483.876,20.791z M466.61,56.897L257.457,266.05c-0.035,0.036-0.055,0.078-0.089,0.107
+                                        l-33.989,15.131L238.51,247.3c0.03-0.036,0.071-0.055,0.107-0.09L447.765,38.058c5.038-5.039,13.819-5.033,18.846,0.005
+                                        c2.518,2.51,3.905,5.855,3.905,9.414C470.516,51.036,469.127,54.38,466.61,56.897z"/>
+                                </g>
+                            </g>
+                            </svg>
+                        </button>
+                    </div>
+                    <div>
+                        <form  class="deleteForm", id="{{post.id}}">
+                            <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
+                            <input type="text" id="postID" value= {{post.id}} name="postID" style="display: none;">
+                            <button class="delete-button" type="submit">
+                                <svg class="svg" xmlns="/static/public/delete-button-svgrepo-com.svg" width="25" height="25" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    
+                    {% endif %}
+                    <div class="num-reactions-text">
+                        <span>{{ numLikes[post.id] }} people like this</span>
+                    </div>
+                    
+                </div>
+                
+
+            </div>
             {% if post.replies %}
                 {% for reply in post.replies %}
-                    {% if reply.deletedAt == None %}
+                    {% if reply.deleted_at== None %}
                     <div class="reply">
                         <div class="reply-header">
                             <div class="reply-profile">
-                                <img src="static/public/strawberry.jpg" class="mini-profile">
+                                {% if postable[reply.poster_id|string + "-p"] != None %}
+                                <img src='/api/images/{{postable[reply.posterID|string + "-p"]}}' class='mini-profile'/>
+                               
+                                {% else %}
+                                <img src="/static/public/profile.png" class='mini-profile'/>    
+                                {% endif %}
                             </div>
                             <div class="reply-header-text">
                                 <div class="reply-poster">
-                                    <span><SPAN STYLE="font-weight:bold">{{ postable[reply.posterID] }}</SPAN> replied:</span>
+                                    <span><SPAN STYLE="font-weight:bold">{{ postable[reply.poster_id] }}</SPAN> replied:</span>
                                 </div>
+                                {% if post.createdAt %}
+                                <div class="reply-datetime">
+                                    <span> {{ reply.created_at.strftime('%b. %d, %Y at %I:%M %p') }}</span>
+                                </div>
+                                {% endif %}
                             </div>
                         
-                            {% if (reply.posterID == user) or (pageOwner == user)%}
+                            {% if (reply.poster_id == user.id) or (pageOwner == user.id)%}
                             <div>
                                 <form  class="replyDeleteForm", id="{{ reply.id }}">
                                     <input type="text" id="postedOnID" value= {{pageOwner}} name="postedOnID" style="display: none;">
                                     <input type="text" id="replyID" value= {{reply.id}} name="replyID" style="display: none;">
                                     <button class="reply-delete-button" type="submit">
-                                        <svg xmlns="static/public/delete-button-svgrepo-com.svg" width="15px" height="15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <svg class='svg' xmlns="/static/public/delete-button-svgrepo-com.svg" width="15px" height="15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                     </button>
@@ -128,7 +413,7 @@
                         </div>
                             <div class="reply-content">
                                 <div class="reply-text">
-                                    <span>{{ reply.textContent }}</span>
+                                    <span>{{ reply.text_content }}</span>
                                 </div>
                             </div>  
                         </div> 
@@ -146,9 +431,62 @@
             </form>
         </div>
     </body>
+    {% endif %}
+
+    <div>
+        <form class="edit-popup" action="/api/post/edit/{{post.id}}" method="POST" enctype="multipart/form-data" id="editForm" data-post-id="{{post.id}}" class="edit-form-container">
+          <h1>Edit Post</h1>
+          <input type="text" value="{{post.id}}" name="postId" style="display: none;">
+          <input type="text" placeholder="{{post.textContent}}" value="{{post.textContent}}" name="textContent" required>
+          <button type="submit" class="btn">Update</button>
+          <button type="reset" class="btn cancel">Close</button>
+        </form>
+    </div>
     {% endfor %}
     
     <script>
+        //LogoutButton
+        document.addEventListener("DOMContentLoaded", function() {
+            // User Account Dropdown
+            const userDropdownButton = document.getElementById("user-dropdown-button");
+            const userDropdownContent = document.getElementById("user-dropdown-content");
+
+            userDropdownButton.addEventListener("click", () => {
+                userDropdownContent.classList.toggle("show");
+            });
+
+            // Close the dropdown if the user clicks outside of it
+            window.addEventListener("click", (event) => {
+                if (event.target !== userDropdownButton) {
+                    userDropdownContent.classList.remove("show");
+                }
+            });
+
+
+
+            document.getElementById('logout').addEventListener('click', function(event) {
+                event.preventDefault();
+
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "content": "yes" }), 
+                }).then(function (res) {
+                        if (res.status == 200) {
+                            window.location.href = '/login';
+                        } else {
+                            alert('An Error has occured.');
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log("ERROR ON LOGOUT:", error);
+                    });
+
+            });
+        });
+
+
+
         var postForm = document.getElementById("postForm");
         postForm.addEventListener("submit", function(event){
                 event.preventDefault();
@@ -167,7 +505,59 @@
                 });
 
             });
+        
+            // function openForm() {
+            //     document.getElementById("editForm").style.display = "block";
+            //     }
 
+
+        // Edit post functionality 
+        var editButtons = document.querySelectorAll(".edit-button");
+        var editContainers = document.querySelectorAll(".edit-popup");
+
+        function checkThenOpen(editButton, editContainer) {
+                    console.log(editContainer.getAttribute("data-post-id"))
+                    var post_id = editContainer.getAttribute("data-post-id")
+                    if (post_id == editButton.id) {
+                        
+                        editContainer.style.display = "block";
+                    }
+                    
+                    editContainer.addEventListener("submit", function(event){
+                        event.preventDefault();
+
+                        var data = new FormData(editContainer);
+                        let path = '/api/post/edit/'
+                        fetch(path.concat(post_id), {method: 'POST', body: data, headers: {}}).then(res => {
+                            if (res.status == 200)
+                            {
+                                //JWT should be set so lets go to the home page
+                                location.reload();
+                            } else {
+                                    console.log(res);
+                                    alert('Something went wrong. Please try again.');
+                                }
+                            }).catch(err => {
+                                console.error("Error occured.")
+                            });
+                    })
+
+                    editContainer.addEventListener("reset", function(event){
+                        event.preventDefault();
+                        editContainer.style.display = "none";
+                    })
+                };
+        
+        editButtons.forEach((editButton) => {openEditForm(editButton, editContainers)});
+
+        function openEditForm(editButton, editContainers) {
+            editButton.addEventListener("click", function(event){
+                event.preventDefault();
+                editContainers.forEach((editContainer) => {checkThenOpen(editButton, editContainer)});
+                });}
+        
+
+        // Comment on post functionality
         var commentForms = document.querySelectorAll(".commentForm");
 
         commentForms.forEach((CommentForm) => {reply_to_post(CommentForm)});
@@ -220,6 +610,82 @@
 
         });}
 
+        var shareForms = document.querySelectorAll(".shareForm");
+
+        shareForms.forEach((shareForm) => {share_post(shareForm)});
+
+        function share_post(shareForm) {
+        shareForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(shareForm);
+            
+
+            fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
+                if (res.status == 200)
+            {
+                //JWT should be set so lets go to the home page
+                location.reload();
+            } else {
+                    console.log(res);
+                    alert('There was an error in sharing this post.');
+                }
+            }).catch(err => {
+                console.error("Error occured.")
+            });
+
+        });}
+
+        var likeForms = document.querySelectorAll(".likeForm");
+
+        likeForms.forEach((likeForm) => {like_post(likeForm)});
+
+        function like_post(likeForm) {
+            likeForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            var data = new FormData(likeForm);
+            const userLiked = likeForm.getAttribute('user-already-liked');
+            
+            if (userLiked == "False") {
+
+                fetch('/api/reaction', {method: 'POST', body: data, headers: {}}).then(res => {
+                    if (res.status == 200)
+                {
+                    //JWT should be set so lets go to the home page
+                    location.reload();
+                } else {
+                        console.log(res);
+                        alert('You have already liked this post.');
+                    }
+                }).catch(err => {
+                    console.error("Error occured.")
+                });
+            }
+
+            if (userLiked == "True") {
+            
+                const reactionID = likeForm.getAttribute('reaction-id')
+                let path = '/api/reaction/'
+
+                fetch(path.concat(reactionID), {method: 'DELETE', body: data, headers: {}}).then(res => {
+                    if (res.status == 200)
+                {
+                    //JWT should be set so lets go to the home page
+                    location.reload();
+                } else {
+                        console.log(res);
+                        alert('You have already liked this post.');
+                    }
+                }).catch(err => {
+                    console.error("Error occured.")
+                });
+            }
+
+        });}
+
+
+
         var replyDeleteForms = document.querySelectorAll(".replyDeleteForm");
 
         replyDeleteForms.forEach((replyDeleteForm) => {delete_reply(replyDeleteForm)});
@@ -254,7 +720,6 @@
                 var parts = value.split("; " + name + "=");
                 if (parts.length === 2) return parts.pop().split(";").shift();
             }
-
 
     </script>
 
@@ -377,6 +842,13 @@
     
 }
 
+a {
+    height: 10px;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 .profileinfo>span:nth-of-type(2) {
     font-size: 18;
 
@@ -395,24 +867,33 @@
  justify-content: left;
 }
 
+.post-response {
+ display: flex;
+ align-items: left;
+ margin-top: 0px; 
+ grid-template-columns: 1fr 1fr 1fr;
+ column-gap: 1px;
+ justify-content: left;
+}
+
 .post-poster {
     font-size: 18;
-    margin-top: 30px;
+    margin-top: 13px;
     margin-left: 5px;
+    margin-bottom: 4px;
     font-weight: bold;
 }
 
 .post-datetime {
     font-size: 12;
     margin-top: 0%;
-    margin-left: 5px;
+    margin-left: 20px;
 }
 
 .post-content {
     border: 1px solid grey;
     margin-top: 1%;
     margin-left: 2%;
-    margin-bottom: 2%;
     margin-right: 2%;
     border-radius: 20px;
 }
@@ -426,10 +907,73 @@
     font-weight: bold;
 }
 
+
+.edit-popup {
+  border-radius: 20px;
+  display: None;
+  position: fixed;
+  bottom: 20%;
+  right: 20%;
+  left: 20%;
+  top: 20%;
+  border: 3px solid grey;
+  background-color: white;
+  z-index: 9;
+}
+
+
+.edit-popup input[type=text] {
+  width: 70%;
+  height: 30%;
+  padding: 15px;
+  margin:  0 15% 0 15%;
+  border: none;
+  background: #f1f1f1;
+}
+
+/* When the inputs get focus, do something */
+.edit-popup input[type=text]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+/* Set a style for the submit/login button */
+.edit-popup .btn {
+  background-color: #04aa2b;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  width: 30%;
+  margin-bottom:10px;
+  margin-left:20%;
+  margin-top:5%;
+  opacity: 0.8;
+}
+
+/* Add a red background color to the cancel button */
+.edit-popup .cancel {
+  background-color: red;
+  margin-left:0;
+}
+
+/* Add some hover effects to buttons */
+.edit-popup .btn:hover, .open-button:hover {
+  opacity: 1;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
 .delete-button {
     position: relative;
     margin-top: 20px;
-    margin-left: 700px;
+    margin-left: 20px;
     width: 50px;
     height: 50px;
     border-radius: 25px;
@@ -448,6 +992,45 @@
     transition: .3s;
 }
 
+.like-button {
+    position: relative;
+    margin-top: 20px;
+    margin-left: 40px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid rgb(50, 231, 68);
+    background-color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 0 10px #333;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.like-button:hover {
+    background-color: rgb(207, 245, 212);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
+
+
+.delete-button:hover {
+    background-color: rgb(245, 207, 207);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
+
+
+.num-reactions-text{
+    margin-top: 35px;
+    margin-left: 40px;
+    color: rgb(100, 98, 102);
+    font-weight: bold;
+    
+
+}
 .reply-delete-button {
     position: relative;
     margin-top: 10px;
@@ -470,12 +1053,64 @@
     transition: .3s;
 }
 
-svg {
+.svg {
     color: rgb(231, 50, 50);
     position: absolute;
     transform: translate(-50%, -50%);
     transition: .03s;
 }
+
+.svg2 {
+    color: rgb(231, 50, 50);
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: .03s;
+}
+
+.edit-button {
+    position: relative;
+    margin-top: 20px;
+    margin-left: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid rgb(43, 6, 226);
+    background-color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 0 10px #333;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.edit-button:hover {
+    background-color: rgb(207, 211, 245);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
+
+.share-button {
+    position: relative;
+    margin-top: 20px;
+    margin-left: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    border: 2px solid #c28619;
+    background-color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 0 10px #333;
+    overflow: hidden;
+    transition: .3s;
+}
+
+.share-button:hover {
+    background-color: rgb(245, 239, 207);
+    transform: scale(1.2);
+    box-shadow: 0 0 4px #111;
+    transition: .3s;
+}
+
 .commentForm {
     display: flex;
     flex-direction: column;
@@ -549,7 +1184,6 @@ svg {
     font-size: 18;
     flex-direction: column;
     justify-content: center;
-  
     gap: 1rem;
     margin-top: 3%;
     margin-left: 3%;
@@ -628,10 +1262,13 @@ hr {
 }
 
 .infoimages>img:nth-of-type(2) {
-    width: 20%;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     position: absolute;
-    bottom: -3rem;
+    bottom: -5rem;
+    object-fit: cover;
+    border: 2px solid #555;
 }
 
 .mini-profile {
@@ -642,7 +1279,9 @@ hr {
     border-radius: 50%;
     margin-top: 15px;
     margin-left: 15px;
+    overflow: hidden;
     position: left;
+    object-fit: cover;
    
 }
 
@@ -654,6 +1293,131 @@ hr {
     margin-left: 10%;
     margin-bottom: 5%;
 
+}
+
+.user-account {
+    background-color: #1877f2; 
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 75px; 
+    z-index: 1; 
+    border-radius: 1px 15px 15px 15px;
+
+}
+
+.user-avatars {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.user-avatar-right {
+    margin-left: auto;
+}
+
+.user-avatar-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar {
+    border: 2px solid #555;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-link {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.user-link .icon {
+    margin-right: 5px; /* Adjust the margin as needed */
+}
+
+/* Adjust the icon style as needed */
+.icon {
+    display: inline-block;
+    width: 20px; /* Adjust the width as needed */
+    height: 20px; /* Adjust the height as needed */
+    border-radius: 50%; /* Use this for a circular icon */
+    background-size: cover;
+    background-position: center;
+}
+
+.home-icon {
+    background-image: url('/static/public/home-icon.png'); /* Replace with the path to your home icon image */
+}
+
+.friends-icon {
+    background-image: url('/static/public/friends-icon.png'); /* Replace with the path to your friends icon image */
+}
+
+.settings-icon {
+    background-image: url('/static/public/settings-icon.png'); /* Replace with the path to your settings icon image */
+}
+
+.user-dropdown {
+    position: absolute;
+    right: 25px;
+}
+
+.user-dropdown-button {
+    border-radius: 10%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 5px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 0;
+    height: 90;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.user-dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.user-dropdown-content a:hover {
+    background-color: #f2f2f2;
+    border-radius: 15px 15px 15px 15px;
+}
+
+.show {
+    display: block;
 }
 </style>
 </html>
