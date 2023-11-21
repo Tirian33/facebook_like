@@ -91,10 +91,16 @@ def handle500(error):
     '''
     #most likely we lost DB connection
     if isinstance(error, (OperationalError, PendingRollbackError)):
-        db.session.rollback()
-        db.session.close()
-        db.session.begin()
+        try:
+            db.session.rollback()
+            db.session.close()
+            db.session.begin()
+        except Exception as rollback_error:
+            app.logger.error("Error during rollback: %s", str(rollback_error))
+            raise rollback_error #More info on the error please
+
         return jsonify({'error': 'Lost connection to DB. Retry request.', 'retry':True}), 500
+    
     raise error
 
 @app.after_request
