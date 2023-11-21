@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -38,7 +38,7 @@
                 {% if user.profile_image_id != None %}
                         <img src="/api/images/{{user.profile_image_id}}" alt="" >
                         {% else %}
-                        <img src="/static/public/profile.png" >
+                        <img src="/static/public/profile.png" alt="">
                         {% endif %}
             </div>
         </div>
@@ -870,7 +870,7 @@ a:hover {
 .post-response {
  display: flex;
  align-items: left;
- margin-top: 1px; 
+ margin-top: 0px; 
  grid-template-columns: 1fr 1fr 1fr;
  column-gap: 1px;
  justify-content: left;
