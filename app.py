@@ -1,7 +1,7 @@
 """This is the main driving module for the Facebook imitation app 'Y'."""
 from datetime import (datetime, timedelta, timezone)
 import jwt
-from flask import Flask, jsonify, redirect, url_for
+from flask import Flask, jsonify, redirect, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import PendingRollbackError, OperationalError
 from flask_jwt_extended import (JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies)
@@ -75,6 +75,10 @@ def handle_expired_token(error, second):
     print(error, second)
     return redirect(url_for('pages.login_page', redirect_reason = "tknExp"))  #Token expired
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
+
 @app.errorhandler(500)
 def handle500(error):
     '''
@@ -87,10 +91,16 @@ def handle500(error):
     '''
     #most likely we lost DB connection
     if isinstance(error, (OperationalError, PendingRollbackError)):
-        db.session.rollback()
-        db.session.close()
-        db.session.begin()
+        try:
+            db.session.rollback()
+            db.session.close()
+            db.session.begin()
+        except Exception as rollback_error:
+            app.logger.error("Error during rollback: %s", str(rollback_error))
+            raise rollback_error #More info on the error please
+
         return jsonify({'error': 'Lost connection to DB. Retry request.', 'retry':True}), 500
+    
     raise error
 
 @app.after_request
