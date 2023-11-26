@@ -1,8 +1,8 @@
 """This is the data models for the Facebook imitation app 'Y'."""
 import random
 import string
-from app import db, bcrypt
 from datetime import datetime
+from app import db, bcrypt
 
 class Account(db.Model):
     """Model for Account"""
@@ -17,7 +17,7 @@ class Account(db.Model):
     is_public = db.Column(db.Boolean, default=False)
     friend_code = db.Column(db.String(8), unique=True)
     deleted_at = db.Column(db.DateTime)
-    
+
     def check_pw(self, password):
         '''
         Compares unencrypted password to the password_hash
@@ -46,16 +46,17 @@ class Account(db.Model):
             'coverImageID': self.cover_image_id
         }
         return dict_form
-    
+
     def to_post_data(self):
         '''
-        Returns a dictionary with keys id & id-p which contain the (first name & last name) and profile image id respectively.
+        Returns a dictionary with keys id & id-p which contain the 
+            (first name & last name) and profile image id respectively.
         '''
         data = {}
         data[self.id] = self.first_name + " " + self.last_name
         data[str(self.id) + "-p"] = self.profile_image_id
         return data
-    
+
     def change_pw(self, old_pw, new_pw):
         '''
         Changes the password of an Account.
@@ -67,11 +68,10 @@ class Account(db.Model):
         '''
         if not self.check_pw(old_pw):
             return False
-        
+
         #Password was correct so change the PW to the new PW
         self.password_hash = bcrypt.generate_password_hash(new_pw).decode('utf-8')
         return True
-
 
     def __init__(self, username, password_unhashed, first, last, bio, public = False):
         """Constructor for Account."""
@@ -81,6 +81,7 @@ class Account(db.Model):
         self.last_name = last
         self.bio = bio
         self.is_public = public
+
         while True:
             code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
             if Account.query.filter_by(friend_code=code).first() is None:
@@ -108,7 +109,8 @@ class Post(db.Model):
             caller_acc_id(int): Account.id of the account that is rendering the page
             caller_friends(list): List of Account.ids for caller's friends
         R:
-            Dictionary of the post object using camelCase for the front end with shared posts and reactions processed.
+            Dictionary of the post object using camelCase 
+                for the front end with shared posts and reactions processed.
         '''
         user_reacted = False
         sp_txt = ""
@@ -122,7 +124,10 @@ class Post(db.Model):
 
         if self.shared_post_id is not None and self.shared_post_id != 0:
             targ_pst = Post.query.filter_by(id=self.shared_post_id).first()
-            if self.poster_id == caller_acc_id or targ_pst.poster_id == caller_acc_id or (targ_pst.id is not None and (caller_friends is None or targ_pst.poster_id in caller_friends)):
+            #Determines if the post can be viewed by the caller.
+            if (self.poster_id == caller_acc_id or targ_pst.poster_id == caller_acc_id
+                or (targ_pst.id is not None and
+                    (caller_friends is None or targ_pst.poster_id in caller_friends))):
                 sp_txt = targ_pst.text_content
                 sp_img_id = targ_pst.associated_image_id
                 sp_on = targ_pst.posted_on_id
@@ -148,9 +153,9 @@ class Post(db.Model):
 
         return dict_form
 
-    def __init__(self, pID, text, target, shared_post_id=None, image_id=None):
+    def __init__(self, p_id, text, target, shared_post_id=None, image_id=None):
         """Constructor for Post."""
-        self.poster_id = pID
+        self.poster_id = p_id
         self.posted_on_id = target
         self.text_content = text
         self.shared_post_id = shared_post_id
@@ -204,10 +209,11 @@ class Relationship(db.Model):
         self.first_acc_id = initiator_id
         self.second_acc_id = target_id
         self.is_friend_relation = friend
-    
+
     def make_inverse(self):
         '''
-        Returns an inverse relationship of a given Relationship. Useful for accepting friend requests.
+        Returns an inverse relationship of a given Relationship.
+        Useful for accepting friend requests.
         '''
         inverse = Relationship(self.second_acc_id, self.first_acc_id, self.is_friend_relation)
         inverse.confirmed_relation = True
