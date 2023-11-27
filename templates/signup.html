@@ -84,8 +84,14 @@
                     }
                     else
                     {
-                        //Make alert pop up
-                        alert('Image must be less than 20KB.');
+                        return res.json().then(function (data) {
+                            if (data && data.message) {
+                                alert(data.message);
+                            }
+                            else {
+                                alert('An unexpected error occured. Please try again later.');
+                            }
+                        })
                     }
                 }).catch(function(error){
                     //Hopefully we never reach this

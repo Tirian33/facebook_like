@@ -496,9 +496,17 @@
                 fetch('/api/post', {method: 'POST', body: data, headers: {}}).then(res => {
                     if (res.status == 200){
                         location.reload();
-                    } else {
-                        console.log(res);
-                        alert('Something went wrong. Please try again.');
+                    } 
+                    else
+                    {
+                        return res.json().then(function (data) {
+                            if (data && data.message) {
+                                alert(data.message);
+                            }
+                            else {
+                                alert('An unexpected error occured. Please try again later.');
+                            }
+                        })
                     }
                 }).catch(err => {
                     console.error("Error occured.")
@@ -533,10 +541,18 @@
                             {
                                 //JWT should be set so lets go to the home page
                                 location.reload();
-                            } else {
-                                    console.log(res);
-                                    alert('Something went wrong. Please try again.');
-                                }
+                            } 
+                            else
+                            {
+                                return res.json().then(function (data) {
+                                    if (data && data.message) {
+                                        alert(data.message);
+                                    }
+                                    else {
+                                        alert('An unexpected error occured. Please try again later.');
+                                    }
+                                })
+                            }
                             }).catch(err => {
                                 console.error("Error occured.")
                             });
@@ -573,10 +589,18 @@
             {
                 //JWT should be set so lets go to the home page
                 location.reload();
-            } else {
-                    console.log(res);
-                    alert('Something went wrong. Please try again.');
-                }
+            } 
+            else
+            {
+                return res.json().then(function (data) {
+                    if (data && data.message) {
+                        alert(data.message);
+                    }
+                    else {
+                        alert('An unexpected error occured. Please try again later.');
+                    }
+                })
+            }
             }).catch(err => {
                 console.error("Error occured.")
             });
@@ -600,10 +624,18 @@
             {
                 //JWT should be set so lets go to the home page
                 location.reload();
-            } else {
-                    console.log(res);
-                    alert('You do not have permission to delete this post.');
-                }
+            }
+            else
+            {
+                return res.json().then(function (data) {
+                    if (data && data.message) {
+                        alert(data.message);
+                    }
+                    else {
+                        alert('An unexpected error occured. Please try again later.');
+                    }
+                })
+            }
             }).catch(err => {
                 console.error("Error occured.")
             });
@@ -626,10 +658,18 @@
             {
                 //JWT should be set so lets go to the home page
                 location.reload();
-            } else {
-                    console.log(res);
-                    alert('There was an error in sharing this post.');
-                }
+            }
+            else
+            {
+                return res.json().then(function (data) {
+                    if (data && data.message) {
+                        alert(data.message);
+                    }
+                    else {
+                        alert('An unexpected error occured. Please try again later.');
+                    }
+                })
+            }
             }).catch(err => {
                 console.error("Error occured.")
             });
@@ -703,10 +743,18 @@
             {
                 //JWT should be set so lets go to the home page
                 location.reload();
-            } else {
-                    console.log(res);
-                    alert('You do not have permission to delete this reply.');
-                }
+            }
+            else
+            {
+                return res.json().then(function (data) {
+                    if (data && data.message) {
+                        alert(data.message);
+                    }
+                    else {
+                        alert('An unexpected error occured. Please try again later.');
+                    }
+                })
+            }
             }).catch(err => {
                 console.error("Error occured.")
             });

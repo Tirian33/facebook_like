@@ -4,7 +4,8 @@ import jwt
 from flask import Flask, jsonify, redirect, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import PendingRollbackError, OperationalError
-from flask_jwt_extended import (JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies)
+from flask_jwt_extended import (JWTManager, get_jwt, get_jwt_identity,
+                                create_access_token, set_access_cookies)
 from flask_bcrypt import Bcrypt
 
 # Initializing
@@ -77,6 +78,7 @@ def handle_expired_token(error, second):
 
 @app.errorhandler(404)
 def page_not_found(error):
+    """Renders the 404 page if a 404 is called."""
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
@@ -96,11 +98,11 @@ def handle500(error):
             db.session.close()
             db.session.begin()
         except Exception as rollback_error:
-            app.logger.error("Error during rollback: %s", str(rollback_error))
+            print("Error during rollback: %s", str(rollback_error))
             raise rollback_error #More info on the error please
 
         return jsonify({'error': 'Lost connection to DB. Retry request.', 'retry':True}), 500
-    
+
     raise error
 
 @app.after_request
