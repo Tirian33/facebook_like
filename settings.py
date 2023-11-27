@@ -1,3 +1,7 @@
+"""Settings file for app. Expects .env file for private storage of: SQLALCHEMY_DATABASE_URI
+SQLALCHEMY_SESSION_TIMEOUT
+MAX_CONTENT_LENGTH
+SECRET_KEY"""
 from os import environ
 
 from dotenv import load_dotenv

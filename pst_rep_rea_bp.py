@@ -1,4 +1,4 @@
-"""This is the main driving module for Post, Reply, and Reaction related actions in the Facebook imitation app 'Y'."""
+"""This is the driving module for Post, Reply, and Reaction actions."""
 from datetime import datetime
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import (get_jwt_identity, jwt_required)
@@ -41,7 +41,9 @@ def can_make_content(target_acc_id, poster_id):
         if not target_acc.is_public:
             return 2
 
-        rel = Relationship.query.filter_by(first_acc_id = target_acc.id, second_acc_id = poster_id, deleted_at = None, is_friend_relation = True).first()
+        rel = Relationship.query.filter_by(first_acc_id = target_acc.id,
+                                           second_acc_id = poster_id, deleted_at = None,
+                                           is_friend_relation = True).first()
         if rel is not None:
             return 1
     #Not the same account, and Poster is not friend with target account.
@@ -64,28 +66,27 @@ def make_post():
         postedOnID(int): The account the post is to be put on.
         May have a file called "pic" for the image.
     '''
-    if ((request.form.get('textContent') is None and request.form.get('sharedPostId')is None) 
+    if ((request.form.get('textContent') is None and request.form.get('sharedPostId')is None)
         or request.form.get('postedOnID') is None):
         return  make_error(400, "Invalid request recieved.")
 
     target_account = Account.query.filter_by(id = request.form.get('postedOnID'),
                                              deleted_at = None).first()
-    if (target_account is None):
+    if target_account is None:
         return make_error(400, "Can't find that person to post on.")
-    
+
     permission = can_make_content(request.form.get('postedOnID'), get_jwt_identity())
-    
+
     if permission == 2:
         return make_error(400, "You do not have permission to post right now.")
-    elif permission == 3:
+    if permission == 3:
         return make_error(400, "You are not friends. You cannot post")
-    
+
     new_post = Post(get_jwt_identity(), request.form.get('textContent'),
                     request.form.get('postedOnID'), request.form.get('sharedPostId'))
     # If there is only one image attachment...
-    if (len(request.files.getlist('pic')) == 1 and 
-        ((request.files['pic'].mimetype == 'image/jpeg') 
-         or (request.files['pic'].mimetype == 'image/png'))):
+    if (len(request.files.getlist('pic')) == 1 and
+        (request.files['pic'].mimetype in ('image/jpeg', 'image/png'))):
 
         # Retrieve the image object
         pic = request.files['pic']
@@ -111,7 +112,7 @@ def make_post():
     # If there are multiple image attachments, error out.
     elif len(request.files.getlist('pic')) > 1:
         return make_error(400, "Only one image may be uploaded at a time.")
-    
+
     db.session.add(new_post)
     db.session.commit()
 
@@ -124,13 +125,13 @@ def edit_post(post_id):
     Edits a Post if the caller was the one to make the post.
     Request form is expected to have field textContent.
     '''
-    if (request.form.get('textContent') is None):
+    if request.form.get('textContent') is None:
         return make_error(400, "Invalid request recieved.")
 
     target_post = Post.query.filter_by(id=post_id, deleted_at = None,
                                        poster_id = get_jwt_identity()).first()
 
-    if (target_post is None):
+    if target_post is None:
         return make_error(404, "Unable to find that post")
 
     target_post.text_content = request.form.get('textContent')
@@ -143,7 +144,7 @@ def edit_post(post_id):
 @jwt_required()
 def delete_post(post_id):
     '''
-    Deletes the specified post if either the post was made by the caller or is on the caller's timeline.
+    Deletes the specified post if the post was made by the caller or is on the caller's timeline.
     '''
     target_post = Post.query.filter_by(id=post_id).first()
     if target_post is None:
@@ -187,7 +188,7 @@ def make_reply():
     permission = can_make_content(target_account.id, get_jwt_identity())
     if permission == 2:
         return make_error(400, "You do not have permission to reply right now.")
-    elif permission == 3:
+    if permission == 3:
         return make_error(400, "You are not friends. You cannot reply.")
 
     new_reply = Reply(request.form.get('respTo'),
@@ -239,8 +240,8 @@ def make_reaction():
         return make_error(400, "The post you are trying to react to has been deleted.")
 
     for reaction in target_post.reactions:
-        if (reaction.poster_id == get_jwt_identity() 
-            and reaction.deleted_at != None):
+        if (reaction.poster_id == get_jwt_identity()
+            and reaction.deleted_at is not None):
 
             reaction.deleted_at = None
             db.session.commit()
@@ -259,15 +260,14 @@ def make_reaction():
 def delete_reaction(reaction_id):
     """Deletes reaction if caller is the creator."""
     requester_id = get_jwt_identity()
-    
+
     target = Reaction.query.filter_by(id=reaction_id).first()
     if target is None:
         return make_error(400) #Request made was bad
 
     containing_post = Post.query.filter_by(id=target.responding_to).first()
 
-    if (containing_post.posted_on_id == requester_id
-        or target.poster_id == requester_id):
+    if requester_id in (containing_post.posted_on_id, target.poster_id):
 
         target.deleted_at = datetime.now()
         db.session.commit()
