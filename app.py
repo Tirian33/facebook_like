@@ -78,6 +78,7 @@ def handle_expired_token(error, second):
 
 @app.errorhandler(404)
 def page_not_found(error):
+    """Renders the 404 page if a 404 is called."""
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
