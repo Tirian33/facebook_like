@@ -31,13 +31,13 @@ def home_page():
     #Gets all the accounts that are friends with the user.
     raw_friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id==acc.id)
                                                  & (Relationship.second_acc_id == Account.id)
-                                                 & (Relationship.confirmed_relation is True)
-                                                 & (Relationship.is_friend_relation is True)
+                                                 & (Relationship.confirmed_relation == True)
+                                                 & (Relationship.is_friend_relation == True)
                                                  & (Relationship.deleted_at is None)).all()
     raw_postable = db.session.query(Account).join( Relationship, (Relationship.first_acc_id==acc.id)
                                                   & (Relationship.second_acc_id == Account.id)
-                                                  & (Relationship.confirmed_relation is True)
-                                                  & (Relationship.is_friend_relation is True)).all()
+                                                  & (Relationship.confirmed_relation == True)
+                                                  & (Relationship.is_friend_relation == True)).all()
 
     friends = []
     postable = {}
@@ -104,22 +104,22 @@ def timeline(acc_id):
     all_my_friends = db.session.query(Account).join( Relationship,
                                             (Relationship.first_acc_id == get_jwt_identity())
                                             & (Relationship.second_acc_id == Account.id)
-                                            & (Relationship.confirmed_relation is True)
-                                            & (Relationship.is_friend_relation is True)).all()
+                                            & (Relationship.confirmed_relation == True)
+                                            & (Relationship.is_friend_relation == True)).all()
     all_my_friends_ids = [account.id for account in all_my_friends]
 
     # Gets all the accounts that are friends with the user.
     raw_t_friends = db.session.query(Account).join( Relationship,
                                             (Relationship.first_acc_id == acc_id)
                                             & (Relationship.second_acc_id == Account.id)
-                                            & (Relationship.confirmed_relation is True)
-                                            & (Relationship.is_friend_relation is True)
-                                            & (Relationship.deleted_at is None)).all()
+                                            & (Relationship.confirmed_relation == True)
+                                            & (Relationship.is_friend_relation == True)
+                                            & (Relationship.deleted_at == None)).all()
     raw_t_postable = db.session.query(Account).join( Relationship,
                                             (Relationship.first_acc_id == acc_id)
                                             & (Relationship.second_acc_id == Account.id)
-                                            & (Relationship.confirmed_relation is True)
-                                            & (Relationship.is_friend_relation is True)).all()
+                                            & (Relationship.confirmed_relation == True)
+                                            & (Relationship.is_friend_relation == True)).all()
 
     targ_friends = []
     postable = {}
