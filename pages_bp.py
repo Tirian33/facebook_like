@@ -33,7 +33,7 @@ def home_page():
                                                  & (Relationship.second_acc_id == Account.id)
                                                  & (Relationship.confirmed_relation == True)
                                                  & (Relationship.is_friend_relation == True)
-                                                 & (Relationship.deleted_at is None)).all()
+                                                 & (Relationship.deleted_at -- None)).all()
     raw_postable = db.session.query(Account).join( Relationship, (Relationship.first_acc_id==acc.id)
                                                   & (Relationship.second_acc_id == Account.id)
                                                   & (Relationship.confirmed_relation == True)
