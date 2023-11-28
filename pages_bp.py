@@ -174,21 +174,25 @@ def friend_page():
     """Renders the friends page for the current user."""
     acc = Account.query.filter_by(id=get_jwt_identity()).first()
 
+    # friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True) & (Relationship.deleted_at == None)).all()
+    # pending = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == Account.id) & (Relationship.second_acc_id == acc.id) & (Relationship.confirmed_relation == False) & (Relationship.is_friend_relation == True) & (Relationship.deleted_at == None)).all()
+    # blocked = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.is_friend_relation == False) & (Relationship.deleted_at == None)).all()
+
     friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id)
                                         & (Relationship.second_acc_id == Account.id)
-                                        & (Relationship.confirmed_relation is True)
-                                        & (Relationship.is_friend_relation is True)
-                                        & (Relationship.deleted_at is None)).all()
+                                        & (Relationship.confirmed_relation == True)
+                                        & (Relationship.is_friend_relation == True)
+                                        & (Relationship.deleted_at == None)).all()
     pending = db.session.query(Account).join( Relationship,
                                         (Relationship.first_acc_id == Account.id)
                                         & (Relationship.second_acc_id == acc.id)
-                                        & (Relationship.confirmed_relation is False)
-                                        & (Relationship.is_friend_relation is True)
-                                        & (Relationship.deleted_at is None)).all()
+                                        & (Relationship.confirmed_relation == False)
+                                        & (Relationship.is_friend_relation == True)
+                                        & (Relationship.deleted_at == None)).all()
     blocked = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id)
                                         & (Relationship.second_acc_id == Account.id)
-                                        & (Relationship.is_friend_relation is False)
-                                        & (Relationship.deleted_at is None)).all()
+                                        & (Relationship.is_friend_relation == False)
+                                        & (Relationship.deleted_at == None)).all()
     friends_processed = [fren.to_dict() for fren in friends]
     pending_processed = [pend.to_dict() for pend in pending]
     blocked_processed = [blck.to_dict() for blck in blocked]
