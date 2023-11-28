@@ -185,7 +185,7 @@ def friend_page():
                                         & (Relationship.confirmed_relation is False)
                                         & (Relationship.is_friend_relation is True)
                                         & (Relationship.deleted_at is None)).all()
-    blocked = db.session.query(Account).join( Relationship, (Relationship.first_acc_id is acc.id)
+    blocked = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id)
                                         & (Relationship.second_acc_id == Account.id)
                                         & (Relationship.is_friend_relation is False)
                                         & (Relationship.deleted_at is None)).all()
