@@ -25,7 +25,7 @@ def image_handler(req, f_access, img_target, account):
     if len(req.files.getlist(f_access)) == 1:
         #Ensure that an octet-stream isn't passed.
         if req.files[f_access].mimetype == 'application/octet-stream':
-            return False
+            return True
 
         # Retrieve the image object
         profile_pic = req.files[f_access]
