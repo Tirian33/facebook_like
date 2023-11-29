@@ -38,8 +38,6 @@ def home_page():
                                                   & (Relationship.second_acc_id == Account.id)
                                                   & (Relationship.confirmed_relation == True)
                                                   & (Relationship.is_friend_relation == True)).all()
-                                                  & (Relationship.confirmed_relation == True)
-                                                  & (Relationship.is_friend_relation == True)).all()
 
     friends = []
     postable = {}
