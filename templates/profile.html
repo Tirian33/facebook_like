@@ -380,7 +380,7 @@
                         <div class="reply-header">
                             <div class="reply-profile">
                                 {% if postable[reply.poster_id|string + "-p"] != None %}
-                                <img src='/api/images/{{postable[reply.posterID|string + "-p"]}}' class='mini-profile'/>
+                                <img src='/api/images/{{postable[reply.poster_id|string + "-p"]}}' class='mini-profile'/>
                                
                                 {% else %}
                                 <img src="/static/public/profile.png" class='mini-profile'/>    

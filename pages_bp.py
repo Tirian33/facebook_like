@@ -38,6 +38,8 @@ def home_page():
                                                   & (Relationship.second_acc_id == Account.id)
                                                   & (Relationship.confirmed_relation == True)
                                                   & (Relationship.is_friend_relation == True)).all()
+                                                  & (Relationship.confirmed_relation == True)
+                                                  & (Relationship.is_friend_relation == True)).all()
 
     friends = []
     postable = {}
@@ -173,6 +175,10 @@ def timeline(acc_id):
 def friend_page():
     """Renders the friends page for the current user."""
     acc = Account.query.filter_by(id=get_jwt_identity()).first()
+
+    # friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.confirmed_relation == True) & (Relationship.is_friend_relation == True) & (Relationship.deleted_at == None)).all()
+    # pending = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == Account.id) & (Relationship.second_acc_id == acc.id) & (Relationship.confirmed_relation == False) & (Relationship.is_friend_relation == True) & (Relationship.deleted_at == None)).all()
+    # blocked = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id) & (Relationship.second_acc_id == Account.id) & (Relationship.is_friend_relation == False) & (Relationship.deleted_at == None)).all()
 
     friends = db.session.query(Account).join( Relationship, (Relationship.first_acc_id == acc.id)
                                         & (Relationship.second_acc_id == Account.id)
