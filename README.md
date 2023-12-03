@@ -25,14 +25,12 @@ Personal Timeline of posts
 Ability to react to posts with comments and likes
 
 
-SRS at: https://docs.google.com/document/d/1dPo8VYm1W8P0Whk1zNR_1woAZ8ZA6i3S/edit?usp=sharing&ouid=100268486651223932090&rtpof=true&sd=true
-
-
 To run:
-1 time executions in current directory perform: 
+1. Create or load .env file with variables: SQLALCHEMY_DATABASE_URI, SQLALCHEMY_SESSION_TIMEOUT, MAX_CONTENT_LENGTH, and SECRET_KEY.
+2. Execute the following in project folder (only needed to be performed on first run) 
 $pip install -r requirements.txt
 $export FLASK_APP=app
 $export FLASK_ENV=development
 
-After the above have been performed you can launch the app at any time from commandline in the project directory with:
+3. Execute the following command in project folder (All cases, start here if project is fuly configed and was restarted)
 $flask run --reload
